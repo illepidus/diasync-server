@@ -1,6 +1,6 @@
 # Diasync server
 
-Серверное часть системы мониторинга глюкозы Diasync.
+Серверная часть системы мониторинга глюкозы [Diasync](https://github.com/illepidus/diasync).
 
 ## Пример схемы, в которое вписано это приложение
 
@@ -10,21 +10,21 @@ flowchart LR
     pump([Инсулиновая помпа])
     sensor([Датчик сахара])
 
-    subgraph Google cloud
+    subgraph g_cloud[Google cloud]
         firebase[Firebase]
     end
 
-    subgraph Телефон ребёнка
+    subgraph phone_master[Телефон ребёнка]
         juglucco[Juglucco]
         xdrip_master[XDrip]
         aaps_master[AAPS]
         ds_master[Diasync]
     end
-    subgraph Сервер
+    subgraph server[Сервер]
         ds_srv[Diasync Server]
         nightscout[NightScout]
     end
-    subgraph Телефон родителя
+    subgraph phone_slave[Телефон родителя]
         ds_slave[Diasync]
         aaps_slave[AAPS]
         xdrip_slave[XDrip]
