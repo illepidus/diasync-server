@@ -1,0 +1,22 @@
+type BloodPoint {
+    userId: String!
+    sensorId: String!
+    timestamp: String!
+    glucose: Glucose!
+}
+
+type Glucose {
+    mgdl: Float!
+}
+
+type Query {
+    bloodPoints(userId: String!, from: String!, to: String!): [BloodPoint!]!
+}
+
+type Mutation {
+    addBloodPoint(userId: String!, sensorId: String!, glucose: Float!): BloodPoint!
+}
+
+type Subscription {
+    bloodPointAdded(userId: String!): BloodPoint!
+}

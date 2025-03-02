@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diasync Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/graphql-ws@5.16.0/umd/graphql-ws.min.js"></script>
+    <style>
+        #status { width: 20px; height: 20px; border-radius: 50%; display: inline-block; margin-left: 10px; }
+        .connected { background-color: green; }
+        .disconnected { background-color: red; }
+    </style>
+</head>
+<body>
+    <h1>Blood Glucose Monitor (user: demo)</h1>
+    <div>Connection Status: <span id="status" class="disconnected"></span></div>
+    <canvas id="glucoseChart" width="800" height="400"></canvas>
+
+    <script>
+        const userId = "demo";
+        const graphqlEndpoint = "http://localhost:8080/graphql";
+        const wsEndpoint = "ws://localhost:8080/graphql";
+        const dataPoints = [];
+
+        // Chart.js
+        const ctx = document.getElementById('glucoseChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{ label: 'Blood Glucose (mg/dL)', data: dataPoints, borderColor: 'blue', fill: false }]
+            },
+            options: {
+                scales: {
+                    x: { type: 'time', time: { unit: 'minute', displayFormats: { minute: 'HH:mm' } }, min: new Date(Date.now() - 60 * 60 * 1000), max: new Date(), title: { display: true, text: 'Time' } },
+                    y: { min: 0, max: 200, title: { display: true, text: 'Glucose (mg/dL)' } }
+                }
+            }
+        });
+
+        function updateStatus(connected) {
+            document.getElementById('status').className = connected ? 'connected' : 'disconnected';
+        }
+
+        async function fetchInitialData() {
+            const now = new Date();
+            const oneHourAgo = new Date(now - 60 * 60 * 1000);
+            const query = { query: `query { bloodPoints(userId: "${userId}", from: "${oneHourAgo.toISOString()}", to: "${now.toISOString()}") { timestamp glucose { mgdl } } }` };
+            const response = await fetch(graphqlEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query) });
+            const result = await response.json();
+            result.data.bloodPoints.forEach(point => dataPoints.push({ x: new Date(point.timestamp), y: point.glucose.mgdl }));
+            updateChart();
+        }
+
+        function connectWebSocket() {
+            const client = graphqlWs.createClient({
+                url: wsEndpoint,
+                retryAttempts: Infinity,
+                retryWait: async () => new Promise(resolve => setTimeout(resolve, 1000))
+            });
+
+            client.on('connected', () => {
+                console.log('WebSocket connected');
+                updateStatus(true);
+            });
+
+            client.on('closed', () => {
+                console.log('WebSocket disconnected');
+                updateStatus(false);
+            });
+
+            client.subscribe(
+                { query: `subscription { bloodPointAdded(userId: "${userId}") { timestamp glucose { mgdl } } }` },
+                {
+                    next: ({ data }) => {
+                        const point = data.bloodPointAdded;
+                        dataPoints.push({ x: new Date(point.timestamp), y: point.glucose.mgdl });
+                        updateChart();
+                    },
+                    error: (error) => console.error('Subscription error:', error),
+                    complete: () => console.log('Subscription completed')
+                }
+            );
+        }
+
+        function updateChart() {
+            const now = Date.now();
+            const oneHourAgo = now - 60 * 60 * 1000;
+            chart.data.datasets[0].data = dataPoints.filter(point => point.x >= oneHourAgo);
+            chart.options.scales.x.min = oneHourAgo;
+            chart.options.scales.x.max = now;
+            chart.update();
+        }
+
+        fetchInitialData().then(() => connectWebSocket());
+    </script>
+</body>
+</html>
