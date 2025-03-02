@@ -2,11 +2,15 @@
 
 Серверная часть системы мониторинга глюкозы [Diasync](https://github.com/illepidus/diasync).
 
-## Пример схемы, в которое вписано это приложение
+## Пример схемы
+
+Очевидно, схема неполная, на ней не хватает некоторых связей.
+Например, XDrip и ребенка и родителя может писать в Nightscout. Но это сильно усложняет восприятие основных потоков
+данных,
+поэтому я оставил их за скобками.
 
 ```mermaid
 flowchart LR
-
     pump([Инсулиновая помпа])
     sensor([Датчик сахара])
 
@@ -35,9 +39,7 @@ flowchart LR
     xdrip_master -.-> aaps_master <-.-> nightscout <-.-> aaps_slave
     xdrip_master <-.-> firebase <-.-> xdrip_slave
     aaps_master -.-> pump
-    
-    style ds_srv color:#FF8800
-    
+    style ds_srv color: #FF8800
     click juglucco href "https://www.juggluco.nl/"
     click firebase href "https://firebase.google.com/"
     click xdrip_master,xdrip_slave href "https://github.com/NightscoutFoundation/xDrip"
