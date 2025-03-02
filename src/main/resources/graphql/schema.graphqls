@@ -14,7 +14,7 @@ type Query {
 }
 
 type Mutation {
-    addBloodPoint(userId: String!, sensorId: String!, glucose: Float!): BloodPoint!
+    addBloodPoint(userId: String!, sensorId: String!, timestamp: String!, glucose: Float!): BloodPoint!
 }
 
 type Subscription {

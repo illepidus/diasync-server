@@ -33,7 +33,8 @@ public class BloodGlucoseController {
     public List<BloodPoint> bloodPoints(
             @Argument String userId,
             @Argument Instant from,
-            @Argument Instant to) {
+            @Argument Instant to)
+    {
         return bloodPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
     }
 
@@ -41,17 +42,19 @@ public class BloodGlucoseController {
     public BloodPoint addBloodPoint(
             @Argument String userId,
             @Argument String sensorId,
-            @Argument double glucose) {
+            @Argument Instant timestamp,
+            @Argument double glucose)
+    {
         BloodPoint point = new BloodPoint(
                 userId,
                 sensorId,
-                Instant.now(),
+                timestamp,
                 new Glucose(glucose)
         );
 
-        bloodPointRepository.save(point); // Сохраняем в БД
+        bloodPointRepository.save(point);
         Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(userId, new ArrayList<>());
-        sinks.forEach(sink -> sink.next(point)); // Уведомляем подписчиков
+        sinks.forEach(sink -> sink.next(point));
 
         return point;
     }

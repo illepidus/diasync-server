@@ -1,9 +1,8 @@
 const userId = "demo";
-const graphqlEndpoint = "http://localhost:8080/graphql";
-const wsEndpoint = "ws://localhost:8080/graphql";
+const graphqlEndpoint = "http://localhost:15080/graphql";
+const wsEndpoint = "ws://localhost:15080/graphql";
 const dataPoints = [];
 
-// Chart.js
 const ctx = document.getElementById('glucoseChart').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'scatter',
@@ -51,7 +50,7 @@ const chart = new Chart(ctx, {
                 grid: {color: 'rgba(255, 255, 255, 0.2)'}
             },
             y: {
-                min: 0, max: 200,
+                min: 65, max: 185,
                 title: {display: true, text: 'Glucose (mg/dL)', color: '#ececf1'},
                 ticks: {color: '#ececf1'},
                 grid: {color: 'rgba(255, 255, 255, 0.2)'}
@@ -116,8 +115,12 @@ function updateChart() {
     const now = Date.now();
     const oneHourAgo = now - 60 * 60 * 1000;
     chart.data.datasets[0].data = dataPoints.filter(point => point.x >= oneHourAgo);
-    chart.options.scales.x.min = oneHourAgo;
-    chart.options.scales.x.max = now;
+    chart.options.scales.x.min = oneHourAgo - 60 * 1000;
+    chart.options.scales.x.max = now + 60 * 1000;
+
+    chart.options.scales.y.min = Math.min(65, ...dataPoints.map(point => point.y));
+    chart.options.scales.y.max = Math.max(185, ...dataPoints.map(point => point.y));
+
     chart.update();
 }
 
