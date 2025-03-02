@@ -7,9 +7,35 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://unpkg.com/graphql-ws@5.16.0/umd/graphql-ws.min.js"></script>
     <style>
-        #status { width: 20px; height: 20px; border-radius: 50%; display: inline-block; margin-left: 10px; }
-        .connected { background-color: green; }
-        .disconnected { background-color: red; }
+        body {
+            background-color: #343541;
+            color: #ececf1;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #10a37f;
+        }
+        #status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .connected {
+            background-color: #10a37f;
+        }
+        .disconnected {
+            background-color: #ff5f56;
+        }
+        canvas {
+            background-color: #222;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
@@ -28,12 +54,47 @@
         const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                datasets: [{ label: 'Blood Glucose (mg/dL)', data: dataPoints, borderColor: 'blue', fill: false }]
+                datasets: [{
+                    label: 'Blood Glucose (mg/dL)',
+                    data: dataPoints,
+                    borderColor: '#10a37f',
+                    backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                    fill: true,
+                    tension: 0.5
+                }]
             },
             options: {
+                plugins: {
+                    legend: { labels: { color: '#ececf1' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.raw.y.toFixed(1);
+                                return `Glucose: ${value} mg/dL`;
+                            },
+                            title: function(context) {
+                                let date = new Date(context[0].raw.x);
+                                return date.toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(',', '');
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    x: { type: 'time', time: { unit: 'minute', displayFormats: { minute: 'HH:mm' } }, min: new Date(Date.now() - 60 * 60 * 1000), max: new Date(), title: { display: true, text: 'Time' } },
-                    y: { min: 0, max: 200, title: { display: true, text: 'Glucose (mg/dL)' } }
+                    x: {
+                        type: 'time',
+                        time: { unit: 'minute', stepSize: 10, displayFormats: { minute: 'HH:mm' } },
+                        min: new Date(Date.now() - 60 * 60 * 1000),
+                        max: new Date(),
+                        title: { display: true, text: 'Time', color: '#ececf1' },
+                        ticks: { color: '#ececf1', stepSize: 10, autoSkip: true },
+                        grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                    },
+                    y: {
+                        min: 0, max: 200,
+                        title: { display: true, text: 'Glucose (mg/dL)', color: '#ececf1' },
+                        ticks: { color: '#ececf1' },
+                        grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                    }
                 }
             }
         });
