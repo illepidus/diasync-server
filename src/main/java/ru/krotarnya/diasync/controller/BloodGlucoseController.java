@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -17,32 +17,31 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import ru.krotarnya.diasync.model.BloodPoint;
 import ru.krotarnya.diasync.model.Glucose;
+import ru.krotarnya.diasync.repository.BloodPointRepository;
 
-/**
- * @author ivblinov
- */
 @Controller
 public class BloodGlucoseController {
-    private final Map<String, List<BloodPoint>> bloodPoints = new ConcurrentHashMap<>();
+    private final BloodPointRepository bloodPointRepository;
     private final Map<String, List<FluxSink<BloodPoint>>> subscribers = new ConcurrentHashMap<>();
+
+    @Autowired
+    public BloodGlucoseController(BloodPointRepository bloodPointRepository) {
+        this.bloodPointRepository = bloodPointRepository;
+    }
 
     @QueryMapping
     public List<BloodPoint> bloodPoints(
             @Argument String userId,
             @Argument Instant from,
-            @Argument Instant to)
-    {
-        return bloodPoints.getOrDefault(userId, new ArrayList<>()).stream()
-                .filter(bp -> !bp.timestamp().isBefore(from) && !bp.timestamp().isAfter(to))
-                .collect(Collectors.toList());
+            @Argument Instant to) {
+        return bloodPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
     }
 
     @MutationMapping
     public BloodPoint addBloodPoint(
             @Argument String userId,
             @Argument String sensorId,
-            @Argument double glucose)
-    {
+            @Argument double glucose) {
         BloodPoint point = new BloodPoint(
                 userId,
                 sensorId,
@@ -50,9 +49,9 @@ public class BloodGlucoseController {
                 new Glucose(glucose)
         );
 
-        bloodPoints.computeIfAbsent(userId, k -> new ArrayList<>()).add(point);
+        bloodPointRepository.save(point); // Сохраняем в БД
         Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(userId, new ArrayList<>());
-        sinks.forEach(sink -> sink.next(point));
+        sinks.forEach(sink -> sink.next(point)); // Уведомляем подписчиков
 
         return point;
     }
