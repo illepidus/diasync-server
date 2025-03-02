@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public class DiasyncApplication {
 
     // Модели данных
     public record BloodPoint(String userId, String sensorId, Instant timestamp, Glucose glucose) {}
+
     public record Glucose(double mgdl) {}
 
     @Controller
@@ -49,7 +51,8 @@ public class DiasyncApplication {
         public List<BloodPoint> bloodPoints(
                 @Argument String userId,
                 @Argument Instant from,
-                @Argument Instant to) {
+                @Argument Instant to)
+        {
             return bloodPoints.getOrDefault(userId, new ArrayList<>()).stream()
                     .filter(bp -> !bp.timestamp().isBefore(from) && !bp.timestamp().isAfter(to))
                     .collect(Collectors.toList());
@@ -59,7 +62,8 @@ public class DiasyncApplication {
         public BloodPoint addBloodPoint(
                 @Argument String userId,
                 @Argument String sensorId,
-                @Argument double glucose) {
+                @Argument double glucose)
+        {
             BloodPoint point = new BloodPoint(
                     userId,
                     sensorId,
@@ -105,7 +109,6 @@ public class DiasyncApplication {
         }
     }
 
-    // Фильтр для CORS с поддержкой WebSocket
     @Bean
     public WebFilter corsWebFilter() {
         return (exchange, chain) -> {
@@ -113,20 +116,22 @@ public class DiasyncApplication {
             log.info("Processing request: {} {}", exchange.getRequest().getMethod(), exchange.getRequest().getURI());
             log.info("Request headers: {}", exchange.getRequest().getHeaders());
 
-            exchange.getResponse().getHeaders().add("Access-Control-Allow-Origin", "http://localhost:8000");
+            String origin = exchange.getRequest().getHeaders().getOrigin();
+            if (origin != null) {
+                exchange.getResponse().getHeaders().add("Access-Control-Allow-Origin", origin);
+            }
+
             exchange.getResponse().getHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            exchange.getResponse().getHeaders().add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Connection, Upgrade, Sec-WebSocket-Key, Sec-WebSocket-Version");
-            exchange.getResponse().getHeaders().add("Access-Control-Expose-Headers", "*");
+            exchange.getResponse()
+                    .getHeaders()
+                    .add("Access-Control-Allow-Headers",
+                            "Origin, Content-Type, Accept, Connection, Upgrade, Sec-WebSocket-Key, " +
+                                    "Sec-WebSocket-Version");
             exchange.getResponse().getHeaders().add("Access-Control-Allow-Credentials", "true");
 
             if ("OPTIONS".equals(exchange.getRequest().getMethod().toString())) {
                 exchange.getResponse().getHeaders().add("Access-Control-Max-Age", "3600");
                 return exchange.getResponse().setComplete();
-            }
-
-            if ("GET".equals(exchange.getRequest().getMethod().toString()) &&
-                "websocket".equalsIgnoreCase(exchange.getRequest().getHeaders().getFirst("Upgrade"))) {
-                return chain.filter(exchange);
             }
 
             return chain.filter(exchange);
