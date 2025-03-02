@@ -47,13 +47,13 @@ const chart = new Chart(ctx, {
                 max: new Date(),
                 title: {display: true, text: 'Time', color: '#ececf1'},
                 ticks: {color: '#ececf1', stepSize: 10, autoSkip: true},
-                grid: {color: 'rgba(255, 255, 255, 0.2)'}
+                grid: {color: 'rgba(255, 255, 255, 0.1)'}
             },
             y: {
                 min: 65, max: 185,
                 title: {display: true, text: 'Glucose (mg/dL)', color: '#ececf1'},
                 ticks: {color: '#ececf1'},
-                grid: {color: 'rgba(255, 255, 255, 0.2)'}
+                grid: {color: 'rgba(255, 255, 255, 0.1)'}
             }
         }
     }
@@ -118,8 +118,8 @@ function updateChart() {
     chart.options.scales.x.min = oneHourAgo - 60 * 1000;
     chart.options.scales.x.max = now + 60 * 1000;
 
-    chart.options.scales.y.min = Math.min(65, ...dataPoints.map(point => point.y));
-    chart.options.scales.y.max = Math.max(185, ...dataPoints.map(point => point.y));
+    chart.options.scales.y.min = Math.round(Math.min(70, ...dataPoints.map(point => point.y))) - 5;
+    chart.options.scales.y.max = Math.round(Math.max(180, ...dataPoints.map(point => point.y))) + 5;
 
     chart.update();
 }

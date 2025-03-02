@@ -3,6 +3,12 @@ type BloodPoint {
     sensorId: String!
     timestamp: String!
     glucose: Glucose!
+    calibration: Calibration!
+}
+
+type Calibration {
+    slope: Float!
+    intercept: Float!
 }
 
 type Glucose {
@@ -14,7 +20,14 @@ type Query {
 }
 
 type Mutation {
-    addBloodPoint(userId: String!, sensorId: String!, timestamp: String!, glucose: Float!): BloodPoint!
+    addBloodPoint(
+        userId: String!,
+        sensorId: String!,
+        timestamp: String!,
+        glucose: Float!,
+        calibrationSlope: Float!,
+        calibrationIntercept: Float!
+    ): BloodPoint!
 }
 
 type Subscription {

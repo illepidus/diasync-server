@@ -49,6 +49,6 @@ public class DemoBloodDataGenerator {
         mgdl = Math.min(MAX_MGDL, mgdl);
         previousMgdl = mgdl;
 
-        controller.addBloodPoint(USER_ID, SENSOR_ID, Instant.now(), mgdl);
+        controller.addBloodPoint(USER_ID, SENSOR_ID, Instant.now(), mgdl, 1.0, 0.0);
     }
 }

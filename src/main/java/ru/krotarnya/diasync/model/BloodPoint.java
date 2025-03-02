@@ -2,7 +2,14 @@ package ru.krotarnya.diasync.model;
 
 import java.time.Instant;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 /**
  * @author ivblinov
@@ -26,19 +33,31 @@ public class BloodPoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    public String userId;
-    public String sensorId;
-    public Instant timestamp;
+    public final String userId;
+    public final String sensorId;
+    public final Instant timestamp;
 
     @Embedded
-    public Glucose glucose;
+    public final Glucose glucose;
 
-    public BloodPoint() {}
+    @Embedded
+    public final Calibration calibration;
 
-    public BloodPoint(String userId, String sensorId, Instant timestamp, Glucose glucose) {
+    public BloodPoint() {
+        this(null, null, null, null, null);
+    }
+
+    public BloodPoint(
+            String userId,
+            String sensorId,
+            Instant timestamp,
+            Glucose glucose,
+            Calibration calibration)
+    {
         this.userId = userId;
         this.sensorId = sensorId;
         this.timestamp = timestamp;
         this.glucose = glucose;
+        this.calibration = calibration;
     }
 }

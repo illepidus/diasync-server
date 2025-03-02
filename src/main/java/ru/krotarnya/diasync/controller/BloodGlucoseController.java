@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import ru.krotarnya.diasync.model.BloodPoint;
+import ru.krotarnya.diasync.model.Calibration;
 import ru.krotarnya.diasync.model.Glucose;
 import ru.krotarnya.diasync.repository.BloodPointRepository;
 
@@ -43,15 +45,16 @@ public class BloodGlucoseController {
             @Argument String userId,
             @Argument String sensorId,
             @Argument Instant timestamp,
-            @Argument double glucose)
+            @Argument Double glucose,
+            @Argument Double calibrationSlope,
+            @Argument Double calibrationIntercept)
     {
         BloodPoint point = new BloodPoint(
                 userId,
                 sensorId,
                 timestamp,
-                new Glucose(glucose)
-        );
-
+                new Glucose(glucose),
+                new Calibration(calibrationSlope, calibrationIntercept));
         bloodPointRepository.save(point);
         Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(userId, new ArrayList<>());
         sinks.forEach(sink -> sink.next(point));
