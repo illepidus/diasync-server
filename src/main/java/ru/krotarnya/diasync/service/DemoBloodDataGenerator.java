@@ -9,14 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.controller.BloodGlucoseController;
 
 /**
  * @author ivblinov
  */
-@Component
-public class DemoBloodPointGenerator {
+@Service
+public class DemoBloodDataGenerator {
     private static final String USER_ID = "demo";
     private static final String SENSOR_ID = "demo-sensor-1";
     private static final double MIN_MGDL = 40;
@@ -29,7 +29,7 @@ public class DemoBloodPointGenerator {
     @Nullable
     private Double previousMgdl;
 
-    public DemoBloodPointGenerator(BloodGlucoseController controller) {
+    public DemoBloodDataGenerator(BloodGlucoseController controller) {
         this.controller = controller;
     }
 

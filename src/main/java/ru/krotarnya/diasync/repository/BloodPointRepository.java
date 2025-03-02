@@ -11,4 +11,6 @@ import ru.krotarnya.diasync.model.BloodPoint;
  */
 public interface BloodPointRepository extends JpaRepository<BloodPoint, Long> {
     List<BloodPoint> findByUserIdAndTimestampBetween(String userId, Instant from, Instant to);
+
+    void deleteByTimestampBefore(Instant thirtyDaysAgo);
 }
