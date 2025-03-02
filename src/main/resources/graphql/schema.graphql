@@ -16,7 +16,11 @@ type Glucose {
 }
 
 type Query {
-    bloodPoints(userId: String!, from: String!, to: String!): [BloodPoint!]!
+    bloodPoints(
+        userId: String!
+        from: String!
+        to: String!
+    ): [BloodPoint!]!
 }
 
 type Mutation {
