@@ -32,8 +32,8 @@ flowchart LR
 
     sensor --> juglucco --> xdrip_master
     xdrip_master --> ds_master --> ds_srv --> ds_slave
-    xdrip_master -.-> aaps_master -.-> nightscout -.-> aaps_slave
-    xdrip_master -.-> firebase -.-> xdrip_slave
+    xdrip_master -.-> aaps_master <-.-> nightscout <-.-> aaps_slave
+    xdrip_master <-.-> firebase <-.-> xdrip_slave
     aaps_master -.-> pump
     
     style ds_srv color:#FF8800
