@@ -14,4 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Glucose {
     private double mgdl;
+
+    public static Glucose ofMgdl(double mgdl) {
+        return new Glucose(mgdl);
+    }
 }

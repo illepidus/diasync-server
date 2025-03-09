@@ -1,7 +1,6 @@
 package ru.krotarnya.diasync.controller;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import ru.krotarnya.diasync.model.BloodPoint;
-import ru.krotarnya.diasync.model.Calibration;
-import ru.krotarnya.diasync.model.Glucose;
 import ru.krotarnya.diasync.repository.BloodPointRepository;
 
 @Controller
@@ -33,39 +30,25 @@ public class BloodGlucoseController {
     }
 
     @QueryMapping
-    public List<BloodPoint> bloodPoints(
-            @Argument String userId,
-            @Argument Instant from,
-            @Argument Instant to)
-    {
+    public List<BloodPoint> getBloodPoints(@Argument String userId, @Argument Instant from, @Argument Instant to) {
         return bloodPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
     }
 
     @MutationMapping
-    public BloodPoint addBloodPoint(
-            @Argument String userId,
-            @Argument String sensorId,
-            @Argument Instant timestamp,
-            @Argument Double glucose,
-            @Argument Double calibrationSlope,
-            @Argument Double calibrationIntercept)
-    {
-        BloodPoint point = new BloodPoint(
-                null,
-                userId,
-                sensorId,
-                timestamp,
-                new Glucose(glucose),
-                new Calibration(calibrationSlope, calibrationIntercept));
-        bloodPointRepository.save(point);
-        Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(userId, new ArrayList<>());
-        sinks.forEach(sink -> sink.next(point));
+    public List<BloodPoint> addBloodPoints(@Argument List<BloodPoint> bloodPoints) {
+        bloodPointRepository.saveAll(bloodPoints);
+        bloodPoints.forEach(point -> {
+            Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(
+                    point.getUserId(),
+                    new CopyOnWriteArrayList<>());
+            sinks.forEach(sink -> sink.next(point));
+        });
 
-        return point;
+        return bloodPoints;
     }
 
     @SubscriptionMapping
-    public Flux<BloodPoint> bloodPointAdded(@Argument String userId) {
+    public Flux<BloodPoint> onBloodPointAdded(@Argument String userId) {
         return Flux.create(sink -> {
             subscribers.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(sink);
             sink.onDispose(() -> Optional.ofNullable(subscribers.get(userId))

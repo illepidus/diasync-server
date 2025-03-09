@@ -3,6 +3,7 @@ package ru.krotarnya.diasync.service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.controller.BloodGlucoseController;
 import ru.krotarnya.diasync.model.BloodPoint;
+import ru.krotarnya.diasync.model.Calibration;
 import ru.krotarnya.diasync.model.Glucose;
 
 /**
@@ -41,7 +43,7 @@ public class DemoBloodDataGenerator {
 
         double mgdl = Optional.ofNullable(previousMgdl)
                 .map(prev -> prev + random.nextDouble() * MAX_MGDL_SHIFT - MAX_MGDL_SHIFT / 2)
-                .orElseGet(() -> controller.bloodPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
+                .orElseGet(() -> controller.getBloodPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
                         .stream()
                         .max(Comparator.comparing(BloodPoint::getTimestamp))
                         .map(BloodPoint::getGlucose)
@@ -52,6 +54,12 @@ public class DemoBloodDataGenerator {
         mgdl = Math.min(MAX_MGDL, mgdl);
         previousMgdl = mgdl;
 
-        controller.addBloodPoint(USER_ID, SENSOR_ID, Instant.now(), mgdl, 1.0, 0.0);
+        controller.addBloodPoints(List.of(new BloodPoint(
+                null,
+                USER_ID,
+                SENSOR_ID,
+                Instant.now(),
+                Glucose.ofMgdl(mgdl),
+                Calibration.empty())));
     }
 }

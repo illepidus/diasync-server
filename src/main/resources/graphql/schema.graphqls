@@ -1,3 +1,20 @@
+input CalibrationInput {
+    slope: Float!
+    intercept: Float!
+}
+
+input GlucoseInput {
+    mgdl: Float!
+}
+
+input BloodPointInput {
+    userId: String!
+    sensorId: String!
+    timestamp: String!
+    glucose: GlucoseInput!
+    calibration: CalibrationInput
+}
+
 type BloodPoint {
     userId: String!
     sensorId: String!
@@ -16,7 +33,7 @@ type Glucose {
 }
 
 type Query {
-    bloodPoints(
+    getBloodPoints(
         userId: String!
         from: String!
         to: String!
@@ -24,16 +41,9 @@ type Query {
 }
 
 type Mutation {
-    addBloodPoint(
-        userId: String!,
-        sensorId: String!,
-        timestamp: String!,
-        glucose: Float!,
-        calibrationSlope: Float!,
-        calibrationIntercept: Float!
-    ): BloodPoint!
+    addBloodPoints(bloodPoints: [BloodPointInput!]!): [BloodPoint!]!
 }
 
 type Subscription {
-    bloodPointAdded(userId: String!): BloodPoint!
+    onBloodPointAdded(userId: String!): BloodPoint!
 }

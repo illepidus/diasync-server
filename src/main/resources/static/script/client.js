@@ -66,14 +66,23 @@ function updateStatus(connected) {
 async function fetchInitialData() {
     const now = new Date();
     const oneHourAgo = new Date(now - 60 * 60 * 1000);
-    const query = {query: `query { bloodPoints(userId: "${userId}", from: "${oneHourAgo.toISOString()}", to: "${now.toISOString()}") { timestamp glucose { mgdl } } }`};
+    const query = {
+        query: `
+                    query {
+                        getBloodPoints(userId: "${userId}", from: "${oneHourAgo.toISOString()}", to: "${now.toISOString()}") {
+                            timestamp
+                            glucose { mgdl }
+                        }
+                    }
+                `
+    };
     const response = await fetch(graphqlEndpoint, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(query)
     });
     const result = await response.json();
-    result.data.bloodPoints.forEach(point => dataPoints.push({
+    result.data.getBloodPoints.forEach(point => dataPoints.push({
         x: new Date(point.timestamp),
         y: point.glucose.mgdl
     }));
@@ -98,10 +107,19 @@ function connectWebSocket() {
     });
 
     client.subscribe(
-        {query: `subscription { bloodPointAdded(userId: "${userId}") { timestamp glucose { mgdl } } }`},
+        {
+            query: `
+                        subscription {
+                            onBloodPointAdded(userId: "${userId}") {
+                                timestamp
+                                glucose { mgdl }
+                            }
+                        }
+                    `
+        },
         {
             next: ({data}) => {
-                const point = data.bloodPointAdded;
+                const point = data.onBloodPointAdded;
                 dataPoints.push({x: new Date(point.timestamp), y: point.glucose.mgdl});
                 updateChart();
             },

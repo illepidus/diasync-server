@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.controller;
 
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,11 +25,18 @@ class BloodGlucoseControllerTest {
         String userId = "user1";
         String sensorId = "sensor1";
         double mgdl = 100;
-
         Instant timestamp = Instant.now();
-        Flux<BloodPoint> subscription = controller.bloodPointAdded(userId);
+
+        BloodPoint.BloodPointBuilder bloodPointBuilder = BloodPoint.builder()
+                .userId(userId)
+                .sensorId(sensorId)
+                .timestamp(timestamp)
+                .glucose(Glucose.ofMgdl(mgdl))
+                .calibration(Calibration.empty());
+
+        Flux<BloodPoint> subscription = controller.onBloodPointAdded(userId);
         StepVerifier.create(subscription)
-                .then(() -> controller.addBloodPoint(userId, sensorId, timestamp, mgdl, 1.0, 0.0))
+                .then(() -> controller.addBloodPoints(List.of(bloodPointBuilder.build())))
                 .expectNextMatches(saved -> saved.getUserId().equals(userId)
                         && saved.getSensorId().equals(sensorId)
                         && saved.getTimestamp().equals(timestamp)
@@ -38,7 +46,7 @@ class BloodGlucoseControllerTest {
                 .thenCancel()
                 .verify();
 
-        List<BloodPoint> points = controller.bloodPoints(userId,
+        List<BloodPoint> points = controller.getBloodPoints(userId,
                 timestamp.minusSeconds(3600),
                 timestamp.plusSeconds(3600));
         assertEquals(1, points.size());
@@ -49,8 +57,8 @@ class BloodGlucoseControllerTest {
         assertEquals(new Glucose(mgdl), retrievedPoint.getGlucose());
         assertEquals(new Calibration(1.0, 0.0), retrievedPoint.getCalibration());
 
-        controller.addBloodPoint(userId, sensorId, timestamp.plusSeconds(1), mgdl, 1.0, 0.0);
-        List<BloodPoint> updatedPoints = controller.bloodPoints(userId,
+        controller.addBloodPoints(List.of(bloodPointBuilder.timestamp(timestamp.plus(Duration.ofMinutes(1))).build()));
+        List<BloodPoint> updatedPoints = controller.getBloodPoints(userId,
                 timestamp.minusSeconds(3600),
                 timestamp.plusSeconds(3600));
         assertEquals(2, updatedPoints.size());
