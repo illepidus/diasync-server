@@ -29,10 +29,11 @@ dependencies {
     implementation 'io.projectreactor:reactor-core'
     runtimeOnly 'com.h2database:h2'
 
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.graphql:spring-graphql-test'
+    testImplementation 'org.springframework:spring-test'
     testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'org.mockito:mockito-core:5.14.2'
 }
 
 tasks.named('test') {

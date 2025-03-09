@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -65,8 +67,12 @@ public class BloodGlucoseController {
     @SubscriptionMapping
     public Flux<BloodPoint> bloodPointAdded(@Argument String userId) {
         return Flux.create(sink -> {
-            subscribers.computeIfAbsent(userId, k -> new ArrayList<>()).add(sink);
-            sink.onDispose(() -> subscribers.get(userId).remove(sink));
+            subscribers.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(sink);
+            sink.onDispose(() -> Optional.ofNullable(subscribers.get(userId))
+                    .filter(sinks -> sinks.remove(sink))
+                    .filter(List::isEmpty)
+                    .ifPresent(sinks -> subscribers.remove(userId))
+            );
         });
     }
 }
