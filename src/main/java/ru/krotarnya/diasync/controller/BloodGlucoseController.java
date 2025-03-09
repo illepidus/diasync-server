@@ -49,6 +49,7 @@ public class BloodGlucoseController {
             @Argument Double calibrationIntercept)
     {
         BloodPoint point = new BloodPoint(
+                null,
                 userId,
                 sensorId,
                 timestamp,

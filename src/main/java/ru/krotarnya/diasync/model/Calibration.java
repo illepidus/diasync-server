@@ -1,22 +1,17 @@
 package ru.krotarnya.diasync.model;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-/**
- * @author ivblinov
- */
+@Data
 @Embeddable
+@AllArgsConstructor
 public class Calibration {
-    public final double slope;
-    public final double intercept;
+    private final double slope;
+    private final double intercept;
 
     public Calibration() {
         this(1.0, 0.0);
-    }
-
-    public Calibration(double slope, double intercept) {
-        this.slope = slope;
-        this.intercept = intercept;
     }
 }

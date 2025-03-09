@@ -11,10 +11,12 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 /**
  * @author ivblinov
  */
-
 @Entity
 @Table(
         name = "blood_points",
@@ -28,36 +30,21 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(name = "idx_userid_timestamp", columnList = "userId, timestamp"),
                 @Index(name = "idx_timestamp", columnList = "timestamp")
         })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class BloodPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
-    public final String userId;
-    public final String sensorId;
-    public final Instant timestamp;
-
-    @Embedded
-    public final Glucose glucose;
+    private String userId;
+    private String sensorId;
+    private Instant timestamp;
 
     @Embedded
-    public final Calibration calibration;
+    private Glucose glucose;
 
-    public BloodPoint() {
-        this(null, null, null, null, null);
-    }
-
-    public BloodPoint(
-            String userId,
-            String sensorId,
-            Instant timestamp,
-            Glucose glucose,
-            Calibration calibration)
-    {
-        this.userId = userId;
-        this.sensorId = sensorId;
-        this.timestamp = timestamp;
-        this.glucose = glucose;
-        this.calibration = calibration;
-    }
+    @Embedded
+    private Calibration calibration;
 }

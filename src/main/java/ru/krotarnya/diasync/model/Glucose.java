@@ -1,19 +1,17 @@
 package ru.krotarnya.diasync.model;
 
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author ivblinov
  */
+@Data
 @Embeddable
+@NoArgsConstructor
+@AllArgsConstructor
 public class Glucose {
-    public final double mgdl;
-
-    public Glucose() {
-        this(0);
-    }
-
-    public Glucose(double mgdl) {
-        this.mgdl = mgdl;
-    }
+    private double mgdl;
 }

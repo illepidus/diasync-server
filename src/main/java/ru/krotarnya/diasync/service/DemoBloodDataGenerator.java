@@ -11,6 +11,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.controller.BloodGlucoseController;
+import ru.krotarnya.diasync.model.BloodPoint;
+import ru.krotarnya.diasync.model.Glucose;
 
 /**
  * @author ivblinov
@@ -41,8 +43,9 @@ public class DemoBloodDataGenerator {
                 .map(prev -> prev + random.nextDouble() * MAX_MGDL_SHIFT - MAX_MGDL_SHIFT / 2)
                 .orElseGet(() -> controller.bloodPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
                         .stream()
-                        .max(Comparator.comparingLong(x -> x.timestamp.toEpochMilli()))
-                        .map(x -> x.glucose.mgdl)
+                        .max(Comparator.comparing(BloodPoint::getTimestamp))
+                        .map(BloodPoint::getGlucose)
+                        .map(Glucose::getMgdl)
                         .orElse(MIN_MGDL + (random.nextDouble() * (MAX_MGDL - MIN_MGDL))));
 
         mgdl = Math.max(MIN_MGDL, mgdl);
