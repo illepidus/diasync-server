@@ -111,8 +111,11 @@ function connectWebSocket() {
             query: `
                         subscription {
                             onBloodPointAdded(userId: "${userId}") {
+                                id
+                                userId
                                 timestamp
                                 glucose { mgdl }
+                                calibration { slope, intercept }
                             }
                         }
                     `

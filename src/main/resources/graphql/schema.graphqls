@@ -16,6 +16,7 @@ input BloodPointInput {
 }
 
 type BloodPoint {
+    id: Int!,
     userId: String!
     sensorId: String!
     timestamp: String!
