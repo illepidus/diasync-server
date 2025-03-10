@@ -1,7 +1,6 @@
 package ru.krotarnya.diasync.controller;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,13 +35,8 @@ public class BloodGlucoseController {
 
     @MutationMapping
     public List<BloodPoint> addBloodPoints(@Argument List<BloodPoint> bloodPoints) {
-        bloodPointRepository.saveAll(bloodPoints);
-        bloodPoints.forEach(point -> {
-            Collection<FluxSink<BloodPoint>> sinks = subscribers.getOrDefault(
-                    point.getUserId(),
-                    new CopyOnWriteArrayList<>());
-            sinks.forEach(sink -> sink.next(point));
-        });
+        bloodPointRepository.saveAll(bloodPoints)
+                .forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
 
         return bloodPoints;
     }
