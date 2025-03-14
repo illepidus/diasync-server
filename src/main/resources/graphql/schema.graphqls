@@ -36,8 +36,8 @@ type Glucose {
 type Query {
     getBloodPoints(
         userId: String!
-        from: String!
-        to: String!
+        from: String
+        to: String
     ): [BloodPoint!]!
 }
 

@@ -11,19 +11,15 @@ Content-Type: application/json
         "sensorId": "test_sensor",
         "timestamp": "2025-01-01T00:00:00Z",
         "glucose": {
-          "mgdl": 120.5
+          "mgdl": 100.0
         }
       },
       {
-        "userId": "demo",
-        "sensorId": "demo_sensor",
+        "userId": "test_user",
+        "sensorId": "test_sensor",
         "timestamp": "2025-01-01T00:01:00Z",
         "glucose": {
-          "mgdl": 125.0
-        },
-        "calibration": {
-          "slope": 1.0,
-          "intercept": 0.0
+          "mgdl": 100.1
         }
       }
     ]
@@ -35,10 +31,8 @@ POST http://localhost:15080/graphql
 Content-Type: application/json
 
 {
-  "query": "query GetBloodPoints($userId: String!, $from: String!, $to: String!) { getBloodPoints(userId: $userId, from: $from, to: $to) { id userId sensorId timestamp glucose { mgdl } calibration { slope intercept } } }",
+  "query": "query GetBloodPoints($userId: String!) { getBloodPoints(userId: $userId) { id timestamp glucose { mgdl } } }",
   "variables": {
-    "userId": "test_user",
-    "from": "1970-01-01T00:00:00Z",
-    "to": "3000-01-01T00:00:00Z"
+    "userId": "test_user"
   }
 }

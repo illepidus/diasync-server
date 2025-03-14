@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.controller;
 
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,15 @@ public class BloodGlucoseController {
     }
 
     @QueryMapping
-    public List<BloodPoint> getBloodPoints(@Argument String userId, @Argument Instant from, @Argument Instant to) {
-        return bloodPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
+    public List<BloodPoint> getBloodPoints(
+            @Argument String userId,
+            @Nullable @Argument Instant from,
+            @Nullable @Argument Instant to)
+    {
+        return bloodPointRepository.findByUserIdAndTimestampBetween(
+                userId,
+                Optional.ofNullable(from).orElse(Instant.EPOCH),
+                Optional.ofNullable(to).orElse(Instant.now()));
     }
 
     @MutationMapping
