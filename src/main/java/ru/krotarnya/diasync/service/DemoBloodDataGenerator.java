@@ -13,12 +13,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.controller.BloodGlucoseController;
 import ru.krotarnya.diasync.model.BloodPoint;
-import ru.krotarnya.diasync.model.Calibration;
 import ru.krotarnya.diasync.model.Glucose;
 
-/**
- * @author ivblinov
- */
 @Service
 public class DemoBloodDataGenerator {
     private static final String USER_ID = "demo";
@@ -54,12 +50,11 @@ public class DemoBloodDataGenerator {
         mgdl = Math.min(MAX_MGDL, mgdl);
         previousMgdl = mgdl;
 
-        controller.addBloodPoints(List.of(new BloodPoint(
-                null,
-                USER_ID,
-                SENSOR_ID,
-                Instant.now(),
-                Glucose.ofMgdl(mgdl),
-                Calibration.empty())));
+        controller.addBloodPoints(List.of(BloodPoint.builder()
+                .userId(USER_ID)
+                .sensorId(SENSOR_ID)
+                .timestamp(Instant.now())
+                .glucose(Glucose.ofMgdl(mgdl))
+                .build()));
     }
 }

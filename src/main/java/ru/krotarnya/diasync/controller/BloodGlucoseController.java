@@ -35,10 +35,10 @@ public class BloodGlucoseController {
 
     @MutationMapping
     public List<BloodPoint> addBloodPoints(@Argument List<BloodPoint> bloodPoints) {
-        bloodPointRepository.saveAll(bloodPoints)
-                .forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
+        List<BloodPoint> result = bloodPointRepository.addBloodPoints(bloodPoints);
+        result.forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
 
-        return bloodPoints;
+        return result;
     }
 
     @SubscriptionMapping

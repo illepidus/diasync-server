@@ -21,7 +21,7 @@ type BloodPoint {
     sensorId: String!
     timestamp: String!
     glucose: Glucose!
-    calibration: Calibration!
+    calibration: Calibration
 }
 
 type Calibration {

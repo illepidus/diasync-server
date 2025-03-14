@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.model;
 
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 
 import jakarta.persistence.Embedded;
@@ -15,9 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-/**
- * @author ivblinov
- */
+
 @Entity
 @Table(
         name = "blood_points",
@@ -48,5 +47,6 @@ public class BloodPoint {
     private Glucose glucose;
 
     @Embedded
+    @Nullable
     private Calibration calibration;
 }

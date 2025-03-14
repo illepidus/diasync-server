@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.server.WebFilter;
 
-/**
- * @author ivblinov
- */
 @Configuration
 public class CorsWebFilterContextConfiguration {
     @Bean

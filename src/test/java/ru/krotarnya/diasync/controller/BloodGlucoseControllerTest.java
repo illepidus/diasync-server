@@ -1,19 +1,21 @@
 package ru.krotarnya.diasync.controller;
 
 import java.time.Duration;
+import java.util.Objects;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import ru.krotarnya.diasync.model.BloodPoint;
-import ru.krotarnya.diasync.model.Calibration;
 import ru.krotarnya.diasync.model.Glucose;
 
 import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 class BloodGlucoseControllerTest {
@@ -22,17 +24,16 @@ class BloodGlucoseControllerTest {
 
     @Test
     void testFullCycle() {
-        String userId = "user1";
-        String sensorId = "sensor1";
-        double mgdl = 100;
+        String userId = UUID.randomUUID().toString();
+        String sensorId = UUID.randomUUID().toString();
         Instant timestamp = Instant.now();
+        double mgdl = 100;
 
         BloodPoint.BloodPointBuilder bloodPointBuilder = BloodPoint.builder()
                 .userId(userId)
                 .sensorId(sensorId)
                 .timestamp(timestamp)
-                .glucose(Glucose.ofMgdl(mgdl))
-                .calibration(Calibration.empty());
+                .glucose(Glucose.ofMgdl(mgdl));
 
         Flux<BloodPoint> subscription = controller.onBloodPointAdded(userId);
         StepVerifier.create(subscription)
@@ -40,8 +41,8 @@ class BloodGlucoseControllerTest {
                 .expectNextMatches(saved -> saved.getUserId().equals(userId)
                         && saved.getSensorId().equals(sensorId)
                         && saved.getTimestamp().equals(timestamp)
-                        && saved.getGlucose().equals(new Glucose(mgdl))
-                        && saved.getCalibration().equals(new Calibration())
+                        && saved.getGlucose().equals(Glucose.ofMgdl(mgdl))
+                        && Objects.isNull(saved.getCalibration())
                 )
                 .thenCancel()
                 .verify();
@@ -54,8 +55,8 @@ class BloodGlucoseControllerTest {
         assertEquals(userId, retrievedPoint.getUserId());
         assertEquals(sensorId, retrievedPoint.getSensorId());
         assertEquals(timestamp, retrievedPoint.getTimestamp());
-        assertEquals(new Glucose(mgdl), retrievedPoint.getGlucose());
-        assertEquals(new Calibration(1.0, 0.0), retrievedPoint.getCalibration());
+        assertEquals(Glucose.ofMgdl(mgdl), retrievedPoint.getGlucose());
+        assertNull(retrievedPoint.getCalibration());
 
         controller.addBloodPoints(List.of(bloodPointBuilder.timestamp(timestamp.plus(Duration.ofMinutes(1))).build()));
         List<BloodPoint> updatedPoints = controller.getBloodPoints(userId,

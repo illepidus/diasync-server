@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.service;
 
+import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -10,9 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.repository.BloodPointRepository;
 
-/**
- * @author ivblinov
- */
 @Service
 public class BloodDataCleaner {
     private static final Logger logger = LoggerFactory.getLogger(BloodDataCleaner.class);
@@ -24,9 +22,10 @@ public class BloodDataCleaner {
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS)
+    @Transactional
     public void cleanOldRecords() {
-        Instant thirtyDaysAgo = Instant.now().minus(Duration.ofDays(DAYS_TO_KEEP));
-        bloodPointRepository.deleteByTimestampBefore(thirtyDaysAgo);
+        Instant before = Instant.now().minus(Duration.ofDays(DAYS_TO_KEEP));
+        bloodPointRepository.deleteByTimestampBefore(before);
         logger.info("Deleted records older than {} days at {}", DAYS_TO_KEEP,  Instant.now());
     }
 }

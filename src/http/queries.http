@@ -1,0 +1,44 @@
+### Add Blood Points Mutation
+POST http://localhost:15080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation AddBloodPoints($bloodPoints: [BloodPointInput!]!) { addBloodPoints(bloodPoints: $bloodPoints) { id userId sensorId timestamp glucose { mgdl } calibration { slope intercept } } }",
+  "variables": {
+    "bloodPoints": [
+      {
+        "userId": "demo",
+        "sensorId": "demo_sensor",
+        "timestamp": "2025-01-01T00:00:00Z",
+        "glucose": {
+          "mgdl": 120.5
+        }
+      },
+      {
+        "userId": "demo",
+        "sensorId": "demo_sensor",
+        "timestamp": "2025-01-01T00:01:00Z",
+        "glucose": {
+          "mgdl": 125.0
+        },
+        "calibration": {
+          "slope": 1.0,
+          "intercept": 0.0
+        }
+      }
+    ]
+  }
+}
+
+### Get Blood Points Query
+POST http://localhost:15080/graphql
+Content-Type: application/json
+
+{
+  "query": "query GetBloodPoints($userId: String!, $from: String!, $to: String!) { getBloodPoints(userId: $userId, from: $from, to: $to) { id userId sensorId timestamp glucose { mgdl } calibration { slope intercept } } }",
+  "variables": {
+    "userId": "demo",
+    "from": "1970-01-01T00:00:00Z",
+    "to": "2025-01-01T00:01:00Z"
+  }
+}
