@@ -3,15 +3,13 @@ package ru.krotarnya.diasync.model;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Embeddable
 @AllArgsConstructor
+@NoArgsConstructor
 public class Calibration {
-    private final double slope;
-    private final double intercept;
-
-    public Calibration() {
-        this(1.0, 0.0);
-    }
+    private Double slope;
+    private Double intercept;
 }

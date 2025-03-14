@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Glucose {
-    private double mgdl;
+    private Double mgdl;
 
-    public static Glucose ofMgdl(double mgdl) {
+    public static Glucose ofMgdl(Double mgdl) {
         return new Glucose(mgdl);
     }
 }

@@ -31,9 +31,9 @@ import lombok.NoArgsConstructor;
                 @Index(name = "idx_timestamp", columnList = "timestamp")
         })
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BloodPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
