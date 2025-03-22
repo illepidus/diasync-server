@@ -25,14 +25,11 @@ public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
 
     @Transactional
     default Optional<DataPoint> upsertDataPoint(DataPoint dataPoint) {
-        DataPoint existing = findByUserIdAndTimestamp(dataPoint.getUserId(), dataPoint.getTimestamp());
-
-        if (existing != null) {
-            if (existing.toBuilder().id(null).build().equals(dataPoint)) return Optional.empty();
-            return Optional.of(save(dataPoint.toBuilder().id(existing.getId()).build()));
-        } else {
-            return Optional.of(save(dataPoint));
-        }
+        return switch (findByUserIdAndTimestamp(dataPoint.getUserId(), dataPoint.getTimestamp())) {
+            case null -> Optional.of(save(dataPoint));
+            case DataPoint existing when existing.withoutId().equals(dataPoint.withoutId()) -> Optional.empty();
+            case DataPoint existing -> Optional.of(save(dataPoint.toBuilder().id(existing.getId()).build()));
+        };
     }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

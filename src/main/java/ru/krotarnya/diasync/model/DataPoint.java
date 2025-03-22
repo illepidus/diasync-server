@@ -58,4 +58,8 @@ public class DataPoint {
     @Embedded
     @Nullable
     private Carbs carbs;
+
+    public DataPoint withoutId() {
+        return toBuilder().id(null).build();
+    }
 }
