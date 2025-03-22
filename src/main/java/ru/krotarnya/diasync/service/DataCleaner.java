@@ -24,7 +24,7 @@ public class DataCleaner {
     @Transactional
     public void cleanOldRecords() {
         Instant before = Instant.now().minus(Duration.ofDays(DAYS_TO_KEEP));
-        dataPointRepository.deleteByTimestampBefore(before);
-        logger.info("Deleted records older than {} days at {}", DAYS_TO_KEEP, Instant.now());
+        int pointCount = dataPointRepository.deleteByTimestampBefore(before);
+        logger.info("Deleted {} records older than {} days at {}", pointCount, DAYS_TO_KEEP, Instant.now());
     }
 }
