@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Carbs {
-    private Float grams;
+    private Double grams;
 
     @Nullable
     private String description;

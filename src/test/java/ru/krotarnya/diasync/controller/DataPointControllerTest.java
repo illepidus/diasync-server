@@ -28,7 +28,7 @@ class DataPointControllerTest {
         String userId = UUID.randomUUID().toString();
         String sensorId = UUID.randomUUID().toString();
         Instant timestamp = Instant.now();
-        float mgdl = 100;
+        double mgdl = 100;
 
         DataPoint.DataPointBuilder dataPointBuilder = DataPoint.builder()
                 .userId(userId)

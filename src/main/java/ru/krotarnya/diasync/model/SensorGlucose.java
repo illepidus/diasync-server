@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SensorGlucose {
-    private Float mgdl;
+    private Double mgdl;
     private String sensorId;
 
     @Embedded

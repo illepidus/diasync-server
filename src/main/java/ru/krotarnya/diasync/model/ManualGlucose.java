@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ManualGlucose {
-    private Float mgdl;
+    private Double mgdl;
 }
