@@ -32,16 +32,21 @@ public class DemoBloodDataGenerator {
 
     public DemoBloodDataGenerator(DataPointController controller) {
         this.controller = controller;
-        controller.truncateDataPoints(USER_ID);
         fillMissingData();
     }
 
     private void fillMissingData() {
         Instant now = Instant.now();
-        Instant start = controller.getDataPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
+
+        Optional<DataPoint> lastPoint = controller.getDataPoints(USER_ID, now.minus(MAX_GAP), now)
                 .stream()
-                .max(Comparator.comparing(DataPoint::getTimestamp))
-                .map(DataPoint::getTimestamp)
+                .max(Comparator.comparing(DataPoint::getTimestamp));
+
+        previousMgdl = lastPoint.map(DataPoint::getSensorGlucose)
+                .map(SensorGlucose::getMgdl)
+                .orElse(null);
+
+        Instant start = lastPoint.map(DataPoint::getTimestamp)
                 .filter(timestamp -> Duration.between(timestamp, now).compareTo(MAX_GAP) <= 0)
                 .orElse(now.minus(MAX_GAP));
 
