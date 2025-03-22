@@ -2,7 +2,9 @@ package ru.krotarnya.diasync.model;
 
 import jakarta.annotation.Nullable;
 import java.time.Instant;
-
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,11 +20,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-        name = "blood_points",
+        name = "data_points",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_blood_points_user_sensor_time", columnNames = {
+                @UniqueConstraint(name = "uk_data_points_user_time", columnNames = {
                         "user_id",
-                        "sensor_id",
                         "timestamp"})
         },
         indexes = {
@@ -34,19 +34,28 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BloodPoint {
+public class DataPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String userId;
-    private String sensorId;
     private Instant timestamp;
 
     @Embedded
-    private Glucose glucose;
+    @Nullable
+    @AttributeOverrides({
+            @AttributeOverride(name = "mgdl", column = @Column(name = "sensor_mgdl")),
+            @AttributeOverride(name = "sensorId", column = @Column(name = "sensor_id"))
+    })
+    private SensorGlucose sensorGlucose;
 
     @Embedded
     @Nullable
-    private Calibration calibration;
+    @AttributeOverride(name = "mgdl", column = @Column(name = "manual_mgdl"))
+    private ManualGlucose manualGlucose;
+
+    @Embedded
+    @Nullable
+    private Carbs carbs;
 }

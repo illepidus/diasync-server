@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Calibration {
-    private Float slope;
-    private Float intercept;
+public class Carbs {
+    private Float grams;
+
+    @Nullable
+    private String description;
 }

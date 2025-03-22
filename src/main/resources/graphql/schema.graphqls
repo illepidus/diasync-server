@@ -3,25 +3,27 @@ input CalibrationInput {
     intercept: Float!
 }
 
-input GlucoseInput {
+input SensorGlucoseInput {
     mgdl: Float!
-}
-
-input BloodPointInput {
-    userId: String!
     sensorId: String!
-    timestamp: String!
-    glucose: GlucoseInput!
     calibration: CalibrationInput
 }
 
-type BloodPoint {
-    id: Int!,
+input ManualGlucoseInput {
+    mgdl: Float!
+}
+
+input CarbsInput {
+    grams: Float!
+    description: String
+}
+
+input DataPointInput {
     userId: String!
-    sensorId: String!
-    timestamp: String!
-    glucose: Glucose!
-    calibration: Calibration
+    timestamp: String! # ISO 8601 i.e. "2025-03-22T14:30:00Z"
+    sensorGlucose: SensorGlucoseInput
+    manualGlucose: ManualGlucoseInput
+    carbs: CarbsInput
 }
 
 type Calibration {
@@ -29,22 +31,42 @@ type Calibration {
     intercept: Float!
 }
 
-type Glucose {
+type SensorGlucose {
+    mgdl: Float!
+    sensorId: String!
+    calibration: Calibration
+}
+
+type ManualGlucose {
     mgdl: Float!
 }
 
+type Carbs {
+    grams: Float!
+    description: String
+}
+
+type DataPoint {
+    id: Int!
+    userId: String!
+    timestamp: String! # ISO 8601 i.e. "2025-03-22T14:30:00Z"
+    sensorGlucose: SensorGlucose
+    manualGlucose: ManualGlucose
+    carbs: Carbs
+}
+
 type Query {
-    getBloodPoints(
+    getDataPoints(
         userId: String!
         from: String
         to: String
-    ): [BloodPoint!]!
+    ): [DataPoint!]!
 }
 
 type Mutation {
-    addBloodPoints(bloodPoints: [BloodPointInput!]!): [BloodPoint!]!
+    addDataPoints(dataPoints: [DataPointInput!]!): [DataPoint!]!
 }
 
 type Subscription {
-    onBloodPointAdded(userId: String!): BloodPoint!
+    onDataPointAdded(userId: String!): DataPoint!
 }

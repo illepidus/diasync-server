@@ -1,37 +1,37 @@
-### Add Blood Points Mutation
+###ADD
 POST http://localhost:15080/graphql
 Content-Type: application/json
 
 {
-  "query": "mutation AddBloodPoints($bloodPoints: [BloodPointInput!]!) { addBloodPoints(bloodPoints: $bloodPoints) { id userId sensorId timestamp glucose { mgdl } calibration { slope intercept } } }",
+  "query": "mutation AddDataPoints($dataPoints: [DataPointInput!]!) { addDataPoints(dataPoints: $dataPoints) { id userId timestamp sensorGlucose { mgdl sensorId calibration { slope intercept } } manualGlucose { mgdl } carbs { grams description } } }",
   "variables": {
-    "bloodPoints": [
+    "dataPoints": [
       {
         "userId": "test_user",
-        "sensorId": "test_sensor",
         "timestamp": "2025-01-01T00:00:00Z",
-        "glucose": {
-          "mgdl": 100.0
+        "sensorGlucose": {
+          "mgdl": 100.0,
+          "sensorId": "test_sensor"
         }
       },
       {
         "userId": "test_user",
-        "sensorId": "test_sensor",
         "timestamp": "2025-01-01T00:01:00Z",
-        "glucose": {
-          "mgdl": 100.1
+        "sensorGlucose": {
+          "mgdl": 100.1,
+          "sensorId": "test_sensor"
         }
       }
     ]
   }
 }
 
-### Get Blood Points Query
+###GET
 POST http://localhost:15080/graphql
 Content-Type: application/json
 
 {
-  "query": "query GetBloodPoints($userId: String!) { getBloodPoints(userId: $userId) { id timestamp glucose { mgdl } } }",
+  "query": "query GetDataPoints($userId: String!) { getDataPoints(userId: $userId) { id timestamp sensorGlucose { mgdl sensorId } manualGlucose { mgdl } carbs { grams description } } }",
   "variables": {
     "userId": "test_user"
   }

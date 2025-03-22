@@ -68,13 +68,14 @@ async function fetchInitialData() {
     const oneHourAgo = new Date(now - 60 * 60 * 1000);
     const query = {
         query: `
-                    query {
-                        getBloodPoints(userId: "${userId}", from: "${oneHourAgo.toISOString()}", to: "${now.toISOString()}") {
-                            timestamp
-                            glucose { mgdl }
-                        }
-                    }
-                `
+            query {
+                getDataPoints(userId: "${userId}", from: "${oneHourAgo.toISOString()}", to: "${now.toISOString()}") {
+                    timestamp
+                    sensorGlucose { mgdl }
+                    manualGlucose { mgdl }
+                }
+            }
+        `
     };
     const response = await fetch(graphqlEndpoint, {
         method: 'POST',
@@ -82,10 +83,15 @@ async function fetchInitialData() {
         body: JSON.stringify(query)
     });
     const result = await response.json();
-    result.data.getBloodPoints.forEach(point => dataPoints.push({
-        x: new Date(point.timestamp),
-        y: point.glucose.mgdl
-    }));
+    result.data.getDataPoints.forEach(point => {
+        const mgdl = point.sensorGlucose?.mgdl ?? point.manualGlucose?.mgdl;
+        if (mgdl !== undefined) {
+            dataPoints.push({
+                x: new Date(point.timestamp),
+                y: mgdl
+            });
+        }
+    });
     updateChart();
 }
 
@@ -109,22 +115,25 @@ function connectWebSocket() {
     client.subscribe(
         {
             query: `
-                        subscription {
-                            onBloodPointAdded(userId: "${userId}") {
-                                id
-                                userId
-                                timestamp
-                                glucose { mgdl }
-                                calibration { slope, intercept }
-                            }
-                        }
-                    `
+                subscription {
+                    onDataPointAdded(userId: "${userId}") {
+                        id
+                        userId
+                        timestamp
+                        sensorGlucose { mgdl }
+                        manualGlucose { mgdl }
+                    }
+                }
+            `
         },
         {
             next: ({data}) => {
-                const point = data.onBloodPointAdded;
-                dataPoints.push({x: new Date(point.timestamp), y: point.glucose.mgdl});
-                updateChart();
+                const point = data.onDataPointAdded;
+                const mgdl = point.sensorGlucose?.mgdl ?? point.manualGlucose?.mgdl;
+                if (mgdl !== undefined) {
+                    dataPoints.push({x: new Date(point.timestamp), y: mgdl});
+                    updateChart();
+                }
             },
             error: (error) => console.error('Subscription error:', error),
             complete: () => console.log('Subscription completed')

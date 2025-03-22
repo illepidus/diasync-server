@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Calibration {
-    private Float slope;
-    private Float intercept;
+public class ManualGlucose {
+    private Float mgdl;
 }

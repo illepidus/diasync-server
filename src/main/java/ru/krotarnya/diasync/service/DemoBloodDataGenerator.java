@@ -1,5 +1,11 @@
 package ru.krotarnya.diasync.service;
 
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import ru.krotarnya.diasync.controller.DataPointController;
+import ru.krotarnya.diasync.model.DataPoint;
+import ru.krotarnya.diasync.model.SensorGlucose;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -8,28 +14,20 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import ru.krotarnya.diasync.controller.BloodGlucoseController;
-import ru.krotarnya.diasync.model.BloodPoint;
-import ru.krotarnya.diasync.model.Glucose;
-
 @Service
 public class DemoBloodDataGenerator {
     private static final String USER_ID = "demo";
     private static final String SENSOR_ID = "demo-sensor-1";
-    private static final double MIN_MGDL = 40;
-    private static final double MAX_MGDL = 270;
-    private static final double MAX_MGDL_SHIFT = 20;
+    private static final float MIN_MGDL = 40;
+    private static final float MAX_MGDL = 270;
+    private static final float MAX_MGDL_SHIFT = 20;
 
-    private final BloodGlucoseController controller;
+    private final DataPointController controller;
     private final Random random = new Random();
 
-    @Nullable
-    private Double previousMgdl;
+    private Float previousMgdl;
 
-    public DemoBloodDataGenerator(BloodGlucoseController controller) {
+    public DemoBloodDataGenerator(DataPointController controller) {
         this.controller = controller;
     }
 
@@ -37,24 +35,26 @@ public class DemoBloodDataGenerator {
     public void generateBloodPoint() {
         Instant now = Instant.now();
 
-        double mgdl = Optional.ofNullable(previousMgdl)
-                .map(prev -> prev + random.nextDouble() * MAX_MGDL_SHIFT - MAX_MGDL_SHIFT / 2)
-                .orElseGet(() -> controller.getBloodPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
+        float mgdl = Optional.ofNullable(previousMgdl)
+                .map(prev -> prev + random.nextFloat() * MAX_MGDL_SHIFT - MAX_MGDL_SHIFT / 2)
+                .orElseGet(() -> controller.getDataPoints(USER_ID, now.minus(Duration.ofHours(1)), now)
                         .stream()
-                        .max(Comparator.comparing(BloodPoint::getTimestamp))
-                        .map(BloodPoint::getGlucose)
-                        .map(Glucose::getMgdl)
-                        .orElse(MIN_MGDL + (random.nextDouble() * (MAX_MGDL - MIN_MGDL))));
+                        .max(Comparator.comparing(DataPoint::getTimestamp))
+                        .map(DataPoint::getSensorGlucose)
+                        .map(SensorGlucose::getMgdl)
+                        .orElse(MIN_MGDL + (random.nextFloat() * (MAX_MGDL - MIN_MGDL))));
 
         mgdl = Math.max(MIN_MGDL, mgdl);
         mgdl = Math.min(MAX_MGDL, mgdl);
         previousMgdl = mgdl;
 
-        controller.addBloodPoints(List.of(BloodPoint.builder()
+        controller.addDataPoints(List.of(DataPoint.builder()
                 .userId(USER_ID)
-                .sensorId(SENSOR_ID)
                 .timestamp(Instant.now())
-                .glucose(Glucose.ofMgdl(mgdl))
+                .sensorGlucose(SensorGlucose.builder()
+                        .mgdl(mgdl)
+                        .sensorId(SENSOR_ID)
+                        .build())
                 .build()));
     }
 }
