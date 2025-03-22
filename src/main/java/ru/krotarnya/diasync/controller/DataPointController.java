@@ -32,7 +32,8 @@ public class DataPointController {
     public List<DataPoint> getDataPoints(
             @Argument String userId,
             @Nullable @Argument Instant from,
-            @Nullable @Argument Instant to) {
+            @Nullable @Argument Instant to)
+    {
         return dataPointRepository.findByUserIdAndTimestampBetween(
                 userId,
                 Optional.ofNullable(from).orElse(Instant.EPOCH),
@@ -44,6 +45,12 @@ public class DataPointController {
         List<DataPoint> result = dataPointRepository.addDataPoints(dataPoints);
         result.forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
         return result;
+    }
+
+    @MutationMapping
+    public boolean truncateDataPoints(@Argument String userId) {
+        dataPointRepository.deleteByUserId(userId);
+        return true;
     }
 
     @SubscriptionMapping

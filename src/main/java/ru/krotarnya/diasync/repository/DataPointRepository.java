@@ -12,7 +12,11 @@ import ru.krotarnya.diasync.model.DataPoint;
 public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
     List<DataPoint> findByUserIdAndTimestampBetween(String userId, Instant from, Instant to);
 
+    @Transactional
     void deleteByTimestampBefore(Instant before);
+
+    @Transactional
+    void deleteByUserId(String userId);
 
     @Transactional
     default List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
