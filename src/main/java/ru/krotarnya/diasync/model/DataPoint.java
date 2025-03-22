@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
                 @Index(name = "idx_timestamp", columnList = "timestamp")
         })
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class DataPoint {

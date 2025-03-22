@@ -20,17 +20,16 @@ public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
 
     @Transactional
     default List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
-        return dataPoints.stream().map(this::addDataPoint).flatMap(Optional::stream).toList();
+        return dataPoints.stream().map(this::upsertDataPoint).flatMap(Optional::stream).toList();
     }
 
     @Transactional
-    default Optional<DataPoint> addDataPoint(DataPoint dataPoint) {
-        DataPoint existing = findByUserIdAndTimestamp(
-                dataPoint.getUserId(),
-                dataPoint.getTimestamp());
+    default Optional<DataPoint> upsertDataPoint(DataPoint dataPoint) {
+        DataPoint existing = findByUserIdAndTimestamp(dataPoint.getUserId(), dataPoint.getTimestamp());
 
         if (existing != null) {
-            return Optional.empty();
+            if (existing.toBuilder().id(null).build().equals(dataPoint)) return Optional.empty();
+            return Optional.of(save(dataPoint.toBuilder().id(existing.getId()).build()));
         } else {
             return Optional.of(save(dataPoint));
         }
