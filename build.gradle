@@ -7,6 +7,10 @@ plugins {
 group = 'ru.krotarnya'
 version = 'unspecified'
 
+java {
+
+}
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
