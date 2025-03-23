@@ -1,6 +1,6 @@
 const userId = "demo";
-const graphqlEndpoint = "http://localhost:15080/graphql";
-const wsEndpoint = "ws://localhost:15080/graphql";
+const graphqlEndpoint = `${window.location.protocol}//${window.location.host}/graphql`;
+const wsEndpoint = `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/graphql`;
 const dataPoints = [];
 
 const ctx = document.getElementById('glucoseChart').getContext('2d');
