@@ -10,8 +10,6 @@ RUN chmod +x ./gradlew && ./gradlew dependencies
 
 RUN ./gradlew build -x test
 
-# Открываем порт приложения (например, 8080)
 EXPOSE 15080
 
-# Запускаем приложение
 ENTRYPOINT ["java", "-jar", "/diasync/build/libs/diasync.jar"]
