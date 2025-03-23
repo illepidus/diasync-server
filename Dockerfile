@@ -14,4 +14,4 @@ RUN ./gradlew build -x test
 EXPOSE 15080
 
 # Запускаем приложение
-ENTRYPOINT ["java", "-jar", "/app/build/libs/diasync-unspecified.jar"]
+ENTRYPOINT ["java", "-jar", "/diasync/build/libs/diasync.jar"]
