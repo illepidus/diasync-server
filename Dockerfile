@@ -9,6 +9,8 @@ COPY src ./src
 RUN chmod +x ./gradlew && ./gradlew dependencies
 RUN ./gradlew build -x test
 
+RUN mkdir -p /diasync/db
+
 EXPOSE 15080
 
 ENTRYPOINT ["java", "-jar", "/diasync/build/libs/diasync.jar"]

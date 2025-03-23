@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -64,5 +64,5 @@ jobs:
           EOF
           docker save diasync-server:latest | sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST docker load
           sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            docker run -d --name diasync-server -p 15080:15080 diasync-server:latest
+            docker run -d --name diasync-server -p 15080:15080 --restart unless-stopped -v diasync-db:/diasync/db -e DB_PATH=/diasync/db/diasync diasync-server:latest
           EOF
