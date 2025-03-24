@@ -1,0 +1,111 @@
+name: Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Setup server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PASS: ${{ secrets.SSH_PASS }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+        run: |
+          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+
+            if ! command -v docker-compose &> /dev/null; then
+              sudo apt-get update
+              sudo apt-get install -y docker-compose
+            fi
+
+            mkdir -p ~/diasync/nginx ~/diasync/certs
+
+            cat << 'INNER_EOF' > ~/diasync/docker-compose.yml
+            version: '3.8'
+            services:
+              app:
+                image: diasync-server:latest
+                container_name: diasync-server
+                restart: unless-stopped
+                volumes:
+                  - diasync-db:/diasync/db
+                environment:
+                  - DB_PATH=/diasync/db/diasync
+                expose:
+                  - "15080"
+
+              nginx:
+                image: nginx:latest
+                container_name: nginx-proxy
+                restart: unless-stopped
+                ports:
+                  - "80:80"
+                  - "443:443"
+                volumes:
+                  - ./nginx:/etc/nginx/conf.d
+                  - ./certs:/etc/letsencrypt
+                depends_on:
+                  - app
+
+            volumes:
+              diasync-db:
+            INNER_EOF
+
+            cat << INNER_EOF > ~/diasync/nginx/default.conf
+            server {
+                listen 80;
+                server_name $DOMAIN;
+
+                location /.well-known/acme-challenge/ {
+                    root /var/www/html;
+                }
+
+                location / {
+                    return 301 https://\$host\$request_uri;
+                }
+            }
+            INNER_EOF
+
+            mkdir -p ~/diasync/nginx/var/www/html/.well-known/acme-challenge
+
+            cd ~/diasync && docker-compose up -d
+
+            docker run --rm -v ~/diasync/certs:/etc/letsencrypt \
+              -v ~/diasync/nginx/var/www/html:/var/www/html \
+              certbot/certbot certonly --webroot -w /var/www/html \
+              -d $DOMAIN --email $LETSENCRYPT_EMAIL --agree-tos --non-interactive
+
+            cat << INNER_EOF > ~/diasync/nginx/default.conf
+            server {
+                listen 80;
+                server_name $DOMAIN;
+                return 301 https://\$host\$request_uri;
+            }
+
+            server {
+                listen 443 ssl;
+                server_name $DOMAIN;
+
+                ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
+
+                location / {
+                    proxy_pass http://app:15080;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto \$scheme;
+                }
+            }
+            INNER_EOF
+
+            cd ~/diasync && docker-compose restart nginx
+          EOF
