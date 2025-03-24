@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import ru.krotarnya.diasync.model.DataPoint;
@@ -23,6 +24,7 @@ class DataPointControllerTest {
     private DataPointController controller;
 
     @Test
+    @Transactional
     @SuppressWarnings("DataFlowIssue")
     void testFullCycle() {
         String userId = UUID.randomUUID().toString();
