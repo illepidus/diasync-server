@@ -48,9 +48,8 @@ public class DataPointController {
     }
 
     @MutationMapping
-    public boolean truncateDataPoints(@Argument String userId) {
-        dataPointRepository.deleteByUserId(userId);
-        return true;
+    public int truncateDataPoints(@Argument String userId) {
+        return dataPointRepository.deleteByUserId(userId);
     }
 
     @SubscriptionMapping

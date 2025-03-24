@@ -16,7 +16,7 @@ public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
     int deleteByTimestampBefore(Instant before);
 
     @Transactional
-    void deleteByUserId(String userId);
+    int deleteByUserId(String userId);
 
     @Transactional
     default List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {

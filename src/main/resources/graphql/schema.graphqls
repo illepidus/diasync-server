@@ -65,7 +65,7 @@ type Query {
 
 type Mutation {
     addDataPoints(dataPoints: [DataPointInput!]!): [DataPoint!]!,
-    truncateDataPoints(userId: String!): Boolean
+    truncateDataPoints(userId: String!): Int
 }
 
 type Subscription {

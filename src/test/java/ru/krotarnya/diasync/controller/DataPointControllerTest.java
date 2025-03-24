@@ -3,7 +3,6 @@ package ru.krotarnya.diasync.controller;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +17,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@Disabled
 @SpringBootTest
 class DataPointControllerTest {
     @Autowired
