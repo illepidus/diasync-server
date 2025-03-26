@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-class DataPointControllerSimpleTest {
+class DataPointControllerIntegrationTest {
     private static final String ADD_DATA_POINTS_QUERY = """
             mutation {
                 addDataPoints(
@@ -41,7 +41,7 @@ class DataPointControllerSimpleTest {
 
     private final WebGraphQlTester graphQlTester;
 
-    DataPointControllerSimpleTest(@Autowired WebGraphQlTester graphQlTester) {
+    DataPointControllerIntegrationTest(@Autowired WebGraphQlTester graphQlTester) {
         this.graphQlTester = graphQlTester;
     }
 
