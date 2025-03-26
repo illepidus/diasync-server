@@ -10,8 +10,8 @@ import org.springframework.graphql.test.tester.WebGraphQlTester;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DataPointControllerIntegrationTest {
     private static final String ADD_DATA_POINTS_QUERY = """
             mutation {
