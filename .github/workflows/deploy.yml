@@ -45,7 +45,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t diasync-server:latest .
+          docker build -t diasync-server:latest -f deploy/Dockerfile .
 
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
