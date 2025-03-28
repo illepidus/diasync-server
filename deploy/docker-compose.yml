@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    image: diasync-server:latest
+    expose:
+      - "15080"
+    volumes:
+      - diasync-db:/diasync/db
+    environment:
+      - DB_PATH=/diasync/db/diasync
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
+    depends_on:
+      - app
+
+volumes:
+  diasync-db:
+  caddy_data:
+  caddy_config:
