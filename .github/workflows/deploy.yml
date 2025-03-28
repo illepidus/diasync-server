@@ -48,7 +48,7 @@ jobs:
           docker build -t diasync-server:latest -f deploy/Dockerfile .
 
       - name: Install sshpass
-        run: apt-get update && apt-get install -y sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Deploy to server
         env:
