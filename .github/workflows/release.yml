@@ -1,10 +1,10 @@
-name: Deploy
+name: Release
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
