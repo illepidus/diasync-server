@@ -47,29 +47,21 @@ jobs:
         run: |
           docker build -t diasync-server:latest -f deploy/Dockerfile .
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
       - name: Deploy to server
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: root  # Явно указываем root
-          SSH_PASS: ${{ secrets.SSH_PASS }}
+          SSH_USER: root
+          SSH_KEY: ${{ secrets.SSH_KEY }}
           DOMAIN: ${{ secrets.DOMAIN }}
           EMAIL: ${{ secrets.EMAIL }}
         run: |
-          # Сохраняем и отправляем Docker-образ
-          docker save diasync-server:latest | sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST docker load
+          # Сохраняем SSH-ключ во временный файл
+          echo "$SSH_KEY" > ssh_key
+          chmod 600 ssh_key
 
-          # Создаём директорию на сервере
-          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p ~/diasync-deploy"
-
-          # Отправляем файлы из папки deploy/
-          sshpass -p "$SSH_PASS" scp -P $SSH_PORT -o StrictHostKeyChecking=no deploy/Dockerfile deploy/Caddyfile deploy/docker-compose.yml $SSH_USER@$SSH_HOST:~/diasync-deploy/
-
-          # Устанавливаем зависимости и запускаем сервисы
-          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+          # Устанавливаем Docker и docker-compose, если их нет
+          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             # Устанавливаем Docker, если его нет
             if ! command -v docker >/dev/null 2>&1; then
               apt-get update
@@ -83,9 +75,23 @@ jobs:
               apt-get update
               apt-get install -y docker-compose
             fi
+          EOF
 
-            # Переходим в директорию и запускаем
+          # Сохраняем и отправляем Docker-образ
+          docker save diasync-server:latest | ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST docker load
+
+          # Создаём директорию на сервере
+          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p ~/diasync-deploy"
+
+          # Отправляем файлы из папки deploy/
+          scp -i ssh_key -P $SSH_PORT -o StrictHostKeyChecking=no deploy/Dockerfile deploy/Caddyfile deploy/docker-compose.yml $SSH_USER@$SSH_HOST:~/diasync-deploy/
+
+          # Запускаем сервисы
+          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
             cd ~/diasync-deploy
             docker-compose down
             docker-compose up -d
           EOF
+
+          # Удаляем временный ключ
+          rm ssh_key
