@@ -9,6 +9,7 @@ services:
       - diasync-db:/diasync/db
     environment:
       - DB_PATH=/diasync/db/diasync
+    restart: unless-stopped
 
   caddy:
     image: caddy:2-alpine
@@ -24,6 +25,7 @@ services:
       - EMAIL=${EMAIL}
     depends_on:
       - app
+    restart: unless-stopped
 
 volumes:
   diasync-db:
