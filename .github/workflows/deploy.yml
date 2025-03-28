@@ -61,39 +61,4 @@ jobs:
           chmod 600 ssh_key
 
           # Устанавливаем Docker и docker-compose, если их нет
-          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            if ! command -v docker >/dev/null 2>&1; then
-              apt-get update
-              apt-get install -y docker.io
-              systemctl start docker
-              systemctl enable docker
-            fi
-            if ! command -v docker-compose >/dev/null 2>&1; then
-              apt-get update
-              apt-get install -y docker-compose
-            fi
-          EOF
-
-          # Сохраняем и отправляем Docker-образ
-          docker save diasync-server:latest | ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST docker load
-
-          # Создаём директорию на сервере
-          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p ~/diasync-deploy"
-
-          # Отправляем файлы из папки deploy/
-          scp -i ssh_key -P $SSH_PORT -o StrictHostKeyChecking=no deploy/Dockerfile deploy/Caddyfile deploy/docker-compose.yml $SSH_USER@$SSH_HOST:~/diasync-deploy/
-
-          # Создаём .env файл с переменными и запускаем сервисы
-          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << EOF
-            cd ~/diasync-deploy
-            # Создаём .env файл для docker-compose
-            cat << INNER_EOF > .env
-            DOMAIN=$DOMAIN
-            EMAIL=$EMAIL
-            INNER_EOF
-            docker-compose down
-            docker-compose up -d
-          EOF
-
-          # Удаляем временный ключ
-          rm ssh_key
+          ssh -i ssh_key -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF
