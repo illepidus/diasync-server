@@ -48,25 +48,43 @@ jobs:
           docker build -t diasync-server:latest -f deploy/Dockerfile .
 
       - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+        run: apt-get update && apt-get install -y sshpass
 
       - name: Deploy to server
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_USER: root  # Явно указываем root
           SSH_PASS: ${{ secrets.SSH_PASS }}
           DOMAIN: ${{ secrets.DOMAIN }}
           EMAIL: ${{ secrets.EMAIL }}
         run: |
+          # Сохраняем и отправляем Docker-образ
           docker save diasync-server:latest | sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST docker load
 
+          # Создаём директорию на сервере
           sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p ~/diasync-deploy"
 
+          # Отправляем файлы из папки deploy/
           sshpass -p "$SSH_PASS" scp -P $SSH_PORT -o StrictHostKeyChecking=no deploy/Dockerfile deploy/Caddyfile deploy/docker-compose.yml $SSH_USER@$SSH_HOST:~/diasync-deploy/
 
+          # Устанавливаем зависимости и запускаем сервисы
           sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
-            sudo apt-get update && sudo apt-get install -y docker-compose || true
+            # Устанавливаем Docker, если его нет
+            if ! command -v docker >/dev/null 2>&1; then
+              apt-get update
+              apt-get install -y docker.io
+              systemctl start docker
+              systemctl enable docker
+            fi
+
+            # Устанавливаем docker-compose, если его нет
+            if ! command -v docker-compose >/dev/null 2>&1; then
+              apt-get update
+              apt-get install -y docker-compose
+            fi
+
+            # Переходим в директорию и запускаем
             cd ~/diasync-deploy
             docker-compose down
             docker-compose up -d
