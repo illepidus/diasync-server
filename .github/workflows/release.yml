@@ -16,6 +16,19 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create release branch
+        id: create_branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
+          NEW_COUNT=$((COUNT + 1))
+          BRANCH_NAME="release-$DATE-$NEW_COUNT"
+          git checkout -b $BRANCH_NAME
+          git push origin $BRANCH_NAME
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -32,20 +45,8 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Create release branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          DATE=$(date +%Y-%m-%d)
-          COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
-          NEW_COUNT=$((COUNT + 1))
-          BRANCH_NAME="release-$DATE-$NEW_COUNT"
-          git checkout -b $BRANCH_NAME
-          git push origin $BRANCH_NAME
-
       - name: Build Docker image
-        run: |
-          docker build -t diasync-server:latest -f deploy/Dockerfile .
+        run: docker build -t diasync-server:latest -f deploy/Dockerfile .
 
       - name: Deploy to server
         env:
@@ -62,9 +63,7 @@ jobs:
       - name: Verify deployment
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
           TIMEOUT=300  # 5 minutes in seconds
           INTERVAL=10  # Check every 10 seconds
           ELAPSED=0
@@ -80,5 +79,13 @@ jobs:
           done
           
           echo "Deployment failed: /ping endpoint did not respond with 'pong' within 5 minutes"
-          git push origin --delete $BRANCH_NAME
           exit 1
+
+      - name: Delete release branch on failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME=${{ steps.create_branch.outputs.branch_name }}
+          git push origin --delete $BRANCH_NAME
+          echo "Release branch $BRANCH_NAME deleted due to workflow failure"
