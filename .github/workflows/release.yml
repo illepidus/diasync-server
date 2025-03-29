@@ -58,3 +58,27 @@ jobs:
         run: |
           chmod +x deploy/deploy.sh
           ./deploy/deploy.sh
+
+      - name: Verify deployment
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          TIMEOUT=300  # 5 minutes in seconds
+          INTERVAL=10  # Check every 10 seconds
+          ELAPSED=0
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            if curl -s "https://${DOMAIN}/ping" | grep -q "pong"; then
+              echo "Deployment successful: /ping endpoint responded with 'pong'"
+              exit 0
+            fi
+            echo "Waiting for /ping endpoint... ($ELAPSED/$TIMEOUT seconds)"
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          
+          echo "Deployment failed: /ping endpoint did not respond with 'pong' within 5 minutes"
+          git push origin --delete $BRANCH_NAME
+          exit 1
