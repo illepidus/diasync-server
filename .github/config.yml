@@ -1,0 +1,6 @@
+ssh:
+  host: diasync.krotarnya.ru
+  port: 22
+  user: root
+domain: diasync.krotarnya.ru
+email: illepidus@gmail.com

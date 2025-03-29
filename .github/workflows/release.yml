@@ -16,6 +16,19 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install yq
+        run: |
+          sudo snap install yq
+
+      - name: Load config from config.yml
+        id: config
+        run: |
+          echo "SSH_HOST=$(yq e '.ssh.host' .github/config.yml)" >> $GITHUB_ENV
+          echo "SSH_PORT=$(yq e '.ssh.port' .github/config.yml)" >> $GITHUB_ENV
+          echo "SSH_USER=$(yq e '.ssh.user' .github/config.yml)" >> $GITHUB_ENV
+          echo "DOMAIN=$(yq e '.domain' .github/config.yml)" >> $GITHUB_ENV
+          echo "EMAIL=$(yq e '.email' .github/config.yml)" >> $GITHUB_ENV
+
       - name: Create release branch
         id: create_branch
         env:
@@ -50,24 +63,16 @@ jobs:
 
       - name: Deploy to server
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: ${{ secrets.SSH_USER }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
-          DOMAIN: ${{ secrets.DOMAIN }}
-          EMAIL: ${{ secrets.EMAIL }}
         run: |
           chmod +x deploy/deploy.sh
           ./deploy/deploy.sh
 
       - name: Verify deployment
-        env:
-          DOMAIN: ${{ secrets.DOMAIN }}
         run: |
-          TIMEOUT=300  # 5 minutes in seconds
-          INTERVAL=10  # Check every 10 seconds
+          TIMEOUT=300
+          INTERVAL=10
           ELAPSED=0
-          
           while [ $ELAPSED -lt $TIMEOUT ]; do
             if curl -s "https://${DOMAIN}/ping" | grep -q "pong"; then
               echo "Deployment successful: /ping endpoint responded with 'pong'"
@@ -77,7 +82,6 @@ jobs:
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
           done
-          
           echo "Deployment failed: /ping endpoint did not respond with 'pong' within 5 minutes"
           exit 1
 
