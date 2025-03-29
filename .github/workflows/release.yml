@@ -16,18 +16,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install yq
-        run: |
-          sudo snap install yq
-
       - name: Load config from config.yml
-        id: config
-        run: |
-          echo "SSH_HOST=$(yq e '.ssh.host' .github/config.yml)" >> $GITHUB_ENV
-          echo "SSH_PORT=$(yq e '.ssh.port' .github/config.yml)" >> $GITHUB_ENV
-          echo "SSH_USER=$(yq e '.ssh.user' .github/config.yml)" >> $GITHUB_ENV
-          echo "DOMAIN=$(yq e '.domain' .github/config.yml)" >> $GITHUB_ENV
-          echo "EMAIL=$(yq e '.email' .github/config.yml)" >> $GITHUB_ENV
+        uses: mikefarah/yq@master
+        with:
+          cmd: |
+            echo "SSH_HOST=$(yq e '.ssh.host' .github/config.yml)" >> $GITHUB_ENV
+            echo "SSH_PORT=$(yq e '.ssh.port' .github/config.yml)" >> $GITHUB_ENV
+            echo "SSH_USER=$(yq e '.ssh.user' .github/config.yml)" >> $GITHUB_ENV
+            echo "DOMAIN=$(yq e '.domain' .github/config.yml)" >> $GITHUB_ENV
+            echo "EMAIL=$(yq e '.email' .github/config.yml)" >> $GITHUB_ENV
 
       - name: Create release branch
         id: create_branch
