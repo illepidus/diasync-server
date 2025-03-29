@@ -16,15 +16,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load config from config.yml
-        uses: mikefarah/yq@master
-        with:
-          cmd: |
-            echo "SSH_HOST=$(yq e '.ssh.host' .github/config.yml)" >> $GITHUB_ENV
-            echo "SSH_PORT=$(yq e '.ssh.port' .github/config.yml)" >> $GITHUB_ENV
-            echo "SSH_USER=$(yq e '.ssh.user' .github/config.yml)" >> $GITHUB_ENV
-            echo "DOMAIN=$(yq e '.domain' .github/config.yml)" >> $GITHUB_ENV
-            echo "EMAIL=$(yq e '.email' .github/config.yml)" >> $GITHUB_ENV
+      - name: Load environment variables
+        run: cat .github/.env >> $GITHUB_ENV
 
       - name: Create release branch
         id: create_branch
