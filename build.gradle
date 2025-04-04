@@ -2,6 +2,12 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.gorylenko.gradle-git-properties' version "2.5.0"
+}
+
+gitProperties {
+    keys = ['git.commit.id']
+    failOnNoGitDirectory = false
 }
 
 group = 'ru.krotarnya'
@@ -38,4 +44,12 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     jvmArgs "-javaagent:${classpath.find { it.name.contains('mockito-core') }}", "-Xshare:off"
+}
+
+tasks.named('processResources') {
+    dependsOn 'generateGitProperties'
+}
+
+tasks.named('bootRun') {
+    dependsOn 'generateGitProperties'
 }
