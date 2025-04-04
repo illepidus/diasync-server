@@ -29,11 +29,11 @@ EOF
 
 docker save diasync-server:latest | $SSH_CMD docker load
 
-$SSH_CMD "mkdir -p ~/diasync-deploy"
-$SCP_CMD deploy/{Dockerfile,Caddyfile,docker-compose.yml} "$SSH_USER@$SSH_HOST:~/diasync-deploy/"
+$SSH_CMD "mkdir -p ~/diasync"
+$SCP_CMD .github/{Dockerfile,Caddyfile,docker-compose.yml} "$SSH_USER@$SSH_HOST:~/diasync/"
 
 $SSH_CMD << EOF
-    cd ~/diasync-deploy
+    cd ~/diasync
     printf "DOMAIN=%s\nEMAIL=%s\n" "$DOMAIN" "$EMAIL" > .env
     docker-compose down
     docker-compose up -d

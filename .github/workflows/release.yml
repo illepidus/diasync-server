@@ -49,21 +49,17 @@ jobs:
         run: ./gradlew test
 
       - name: Build Docker image
-        run: docker build -t diasync-server:latest -f deploy/Dockerfile .
+        run: docker build -t diasync-server:latest -f .github/Dockerfile .
 
       - name: Deploy to server
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-        run: |
-          chmod +x deploy/deploy.sh
-          ./deploy/deploy.sh
+        run: bash .github/deploy.sh
 
       - name: Verify deployment
-        run: |
-          chmod +x deploy/verify.sh
-          .github/verify.sh
         env:
           DOMAIN: ${{ env.DOMAIN }}
+        run: bash .github/verify.sh
 
       - name: Delete release branch on failure
         if: failure()
