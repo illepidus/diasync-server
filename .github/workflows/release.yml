@@ -60,20 +60,10 @@ jobs:
 
       - name: Verify deployment
         run: |
-          TIMEOUT=300
-          INTERVAL=10
-          ELAPSED=0
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            if curl -s "https://${DOMAIN}/ping" | grep -q "pong"; then
-              echo "Deployment successful: /ping endpoint responded with 'pong'"
-              exit 0
-            fi
-            echo "Waiting for /ping endpoint... ($ELAPSED/$TIMEOUT seconds)"
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
-          echo "Deployment failed: /ping endpoint did not respond with 'pong' within 5 minutes"
-          exit 1
+          chmod +x deploy/verify.sh
+          .github/verify.sh
+        env:
+          DOMAIN: ${{ env.DOMAIN }}
 
       - name: Delete release branch on failure
         if: failure()
