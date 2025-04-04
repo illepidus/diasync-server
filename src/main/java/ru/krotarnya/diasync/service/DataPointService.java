@@ -17,6 +17,8 @@ import ru.krotarnya.diasync.repository.DataPointRepository;
 
 @Service
 public class DataPointService {
+    private static final Duration DEFAULT_PERIOD = Duration.ofHours(1);
+
     private final DataPointRepository dataPointRepository;
     private final Map<String, List<FluxSink<DataPoint>>> subscribers = new ConcurrentHashMap<>();
 
@@ -27,7 +29,7 @@ public class DataPointService {
 
     public List<DataPoint> getDataPoints(String userId, @Nullable Instant fromO, @Nullable Instant toO) {
         Instant to = Optional.ofNullable(toO).orElse(Instant.now());
-        Instant from = Optional.ofNullable(fromO).orElse(to.minus(Duration.ofHours(1)));
+        Instant from = Optional.ofNullable(fromO).orElse(to.minus(DEFAULT_PERIOD));
 
         return dataPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
     }
