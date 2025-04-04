@@ -47,9 +47,9 @@ flowchart LR
 ```
 
 ### Интеграция
+Поддерживается как GraphQL, так и REST API
 * [Graphiql](https://diasync.krotarnya.ru/graphiql)
 * [Swagger](https://diasync.krotarnya.ru/swagger)
-* [API Docs](https://diasync.krotarnya.ru/api-docs)
 
 ### Установка
 Если есть необходимость развернуть отдельную инсталляцию diasync server, предлагаются следующие шаги:

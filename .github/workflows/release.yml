@@ -54,7 +54,7 @@ jobs:
         run: bash .github/script/verify_deployment.sh
 
       - name: Delete release branch on failure
-        if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ failure() || cancelled() }}
         run: bash .github/script/delete_release_branch.sh
