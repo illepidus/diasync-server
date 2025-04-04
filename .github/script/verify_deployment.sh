@@ -2,10 +2,13 @@
 
 set -e
 
-if [ -z "$DOMAIN" ]; then
-  echo "Error: DOMAIN environment variable is missing."
-  exit 1
-fi
+required_vars=("DOMAIN" "EXPECTED_COMMIT")
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: Required environment variable $var is missing."
+        exit 1
+    fi
+done
 
 echo "Checking /version endpoint..."
 
