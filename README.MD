@@ -47,5 +47,17 @@ flowchart LR
 ```
 
 ### Интеграция
-[Swagger](https://diasync.krotarnya.ru/swagger)
-[API Docs](https://diasync.krotarnya.ru/api-docs)
+* [Swagger](https://diasync.krotarnya.ru/swagger)
+* [API Docs](https://diasync.krotarnya.ru/api-docs)
+
+### Установка
+Если есть необходимость развернуть отдельную инсталляцию diasync server, предлагаются следующие шаги:
+1. Сделать fork этого репозитория
+2. Изменить [.env](.github/.env) файл
+3. Прописать секрет SSH_KEY в [/settings/secrets/actions](/settings/secrets/actions) вашего репозитория
+4. Запустить [Release workflow](/actions/workflows/release.yml) в вашем репозитории.
+
+Минимальные требования к серверу:
+* CPU / 1GB memory / 10GB storage 
+* Ubuntu 24.04 
+* Пользователь должен иметь root права
