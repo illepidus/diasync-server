@@ -2,7 +2,7 @@
 
 Серверная часть системы мониторинга глюкозы [Diasync](https://github.com/illepidus/diasync).
 
-## Пример схемы
+## Пример схемы контроля сахара крови ребёнка
 
 Очевидно, схема неполная, на ней не хватает некоторых связей. Например, XDrip и ребенка и родителя может писать в
 Nightscout. Но это сильно усложняет восприятие основных потоков данных, поэтому я оставил их за скобками.
@@ -46,12 +46,12 @@ flowchart LR
     click nightscout href "https://github.com/nightscout/cgm-remote-monitor"
 ```
 
-### Интеграция
+## Интеграция с API
 Поддерживается как GraphQL, так и REST API
 * [Graphiql](https://diasync.krotarnya.ru/graphiql)
 * [Swagger](https://diasync.krotarnya.ru/swagger)
 
-### Установка
+## Установка
 Если есть необходимость развернуть отдельную инсталляцию diasync server, предлагаются следующие шаги:
 1. Сделать fork этого репозитория
 2. Изменить [.env](.github/.env) файл
