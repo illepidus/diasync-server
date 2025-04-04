@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "Error: GITHUB_TOKEN is not set."
   exit 1
