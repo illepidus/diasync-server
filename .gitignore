@@ -2,3 +2,4 @@
 .idea
 build
 db
+.DS_Store
