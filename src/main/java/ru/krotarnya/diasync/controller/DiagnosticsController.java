@@ -1,7 +1,5 @@
 package ru.krotarnya.diasync.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -14,15 +12,19 @@ import java.util.Map;
 
 @RestController
 public class DiagnosticsController {
-    private static final Logger log = LoggerFactory.getLogger(DiagnosticsController.class);
-
     private final Environment environment;
 
-    @Value("${springdoc.api-docs.path:/api-docs}")
+    @Value("${springdoc.api-docs.path}")
     private String apiDocsPath;
 
-    @Value("${springdoc.swagger-ui.path:/swagger}")
+    @Value("${springdoc.swagger-ui.path}")
     private String swaggerUiPath;
+
+    @Value("${spring.graphql.graphiql.enabled}")
+    private String graphiqlEnabled;
+
+    @Value("${spring.graphql.websocket.path}")
+    private String webSocketPath;
 
     public DiagnosticsController(Environment environment) {
         this.environment = environment;
@@ -34,11 +36,10 @@ public class DiagnosticsController {
 
         diagnostics.put("springdoc.api-docs.path", apiDocsPath);
         diagnostics.put("springdoc.swagger-ui.path", swaggerUiPath);
+        diagnostics.put("spring.graphql.graphiql.enabled", graphiqlEnabled);
+        diagnostics.put("spring.graphql.websocket.path", webSocketPath);
 
         diagnostics.put("activeProfiles", Arrays.asList(environment.getActiveProfiles()));
-
-        log.info("Diagnostics endpoint called. api-docs.path={}", apiDocsPath);
-
         diagnostics.put("java.version", System.getProperty("java.version"));
         diagnostics.put("server.port", environment.getProperty("server.port"));
 
