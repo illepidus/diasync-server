@@ -55,7 +55,7 @@ jobs:
       - name: Verify deployment
         env:
           DOMAIN: ${{ env.DOMAIN }}
-          COMMIT_ID: ${{ github.sha }}
+          EXPECTED_VERSION: "${{ env.BRANCH_NAME }}@${{ github.sha }}"
         run: bash .github/script/verify_deployment.sh
 
       - name: Delete release branch on failure
