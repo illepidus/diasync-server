@@ -5,11 +5,6 @@ plugins {
     id 'com.gorylenko.gradle-git-properties' version "2.5.0"
 }
 
-gitProperties {
-    keys = ['git.commit.id']
-    failOnNoGitDirectory = false
-}
-
 group = 'ru.krotarnya'
 version = 'unspecified'
 
