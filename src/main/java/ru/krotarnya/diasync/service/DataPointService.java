@@ -1,5 +1,7 @@
 package ru.krotarnya.diasync.service;
 
+import jakarta.annotation.Nullable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +25,11 @@ public class DataPointService {
         this.dataPointRepository = dataPointRepository;
     }
 
-    public List<DataPoint> getDataPoints(String userId, Instant from, Instant to) {
-        return dataPointRepository.findByUserIdAndTimestampBetween(
-                userId,
-                Optional.ofNullable(from).orElse(Instant.EPOCH),
-                Optional.ofNullable(to).orElse(Instant.now()));
+    public List<DataPoint> getDataPoints(String userId, @Nullable Instant fromO, @Nullable Instant toO) {
+        Instant to = Optional.ofNullable(toO).orElse(Instant.now());
+        Instant from = Optional.ofNullable(fromO).orElse(to.minus(Duration.ofHours(1)));
+
+        return dataPointRepository.findByUserIdAndTimestampBetween(userId, from, to);
     }
 
     public List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
