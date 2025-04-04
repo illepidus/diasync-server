@@ -1,5 +1,5 @@
 #!/bin/bash
-required_vars=("DOMAIN" "EXPECTED_VERSION")
+required_vars=("DOMAIN" "COMMIT_ID")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "Error: Required environment variable $var is missing."
@@ -10,11 +10,11 @@ done
 echo "Checking /version endpoint..."
 
 DEPLOYED_VERSION=$(curl -s --retry 24 --retry-delay 5 "https://${DOMAIN}/version")
-if [[ "$DEPLOYED_VERSION" =~ "$EXPECTED_VERSION" ]]; then
-  echo "Deployment verification failed: expected $EXPECTED_VERSION, but got $DEPLOYED_VERSION"
+if [[ "$DEPLOYED_VERSION" =~ "@$COMMIT_ID" ]]; then
+  echo "Deployment verification failed: expected $COMMIT_ID, but got $DEPLOYED_VERSION"
   exit 1
 else
-  echo "Deployment verified: version $DEPLOYED_VERSION matches expected $EXPECTED_VERSION"
+  echo "Deployment verified: version $DEPLOYED_VERSION matches expected $COMMIT_ID"
 fi
 
 echo "Checking WebSocket connectivity to wss://${DOMAIN}/graphql..."
