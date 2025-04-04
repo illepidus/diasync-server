@@ -1,14 +1,17 @@
 package ru.krotarnya.diasync.service;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class DemoBloodDataGenerator {

@@ -1,6 +1,8 @@
 package ru.krotarnya.diasync.controller;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -11,9 +13,6 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
-
-import java.time.Instant;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
