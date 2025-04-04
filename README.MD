@@ -45,3 +45,7 @@ flowchart LR
     click ds_master,ds_slave href "https://github.com/illepidus/diasync"
     click nightscout href "https://github.com/nightscout/cgm-remote-monitor"
 ```
+
+### Интеграция
+[Swagger](https://diasync.krotarnya.ru/swagger)
+[API Docs](https://diasync.krotarnya.ru/api-docs)
