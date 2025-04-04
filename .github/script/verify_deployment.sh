@@ -10,7 +10,7 @@ done
 echo "Checking /version endpoint..."
 
 DEPLOYED_VERSION=$(curl -s --retry 24 --retry-delay 5 "https://${DOMAIN}/version")
-if [ "$DEPLOYED_VERSION" != "$EXPECTED_VERSION" ]; then
+if [[ "$DEPLOYED_VERSION" =~ "$EXPECTED_VERSION" ]]; then
   echo "Deployment verification failed: expected $EXPECTED_VERSION, but got $DEPLOYED_VERSION"
   exit 1
 else
