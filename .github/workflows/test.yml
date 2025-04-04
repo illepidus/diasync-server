@@ -29,7 +29,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/script/create_release_branch.sh
 
-      - name: Delete release branch on failure
+      - name: Delete release branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/script/delete_release_branch.sh

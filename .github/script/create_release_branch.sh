@@ -16,7 +16,7 @@ git checkout -b "$BRANCH_NAME"
 git push origin "$BRANCH_NAME"
 
 if [ -n "$GITHUB_OUTPUT" ]; then
-  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_ENV"
+  echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 else
   echo "Created branch: $BRANCH_NAME"
 fi
