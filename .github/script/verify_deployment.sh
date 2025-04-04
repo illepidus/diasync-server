@@ -7,23 +7,14 @@ if [ -z "$DOMAIN" ]; then
   exit 1
 fi
 
-echo "Checking /ping endpoint..."
-TIMEOUT=300
-INTERVAL=10
-ELAPSED=0
-while [ $ELAPSED -lt $TIMEOUT ]; do
-  if curl -s "https://${DOMAIN}/ping" | grep -q "pong"; then
-    echo "Deployment successful: /ping endpoint responded with 'pong'"
-    break
-  fi
-  echo "Waiting for /ping endpoint... ($ELAPSED/$TIMEOUT seconds)"
-  sleep $INTERVAL
-  ELAPSED=$((ELAPSED + INTERVAL))
-done
+echo "Checking /version endpoint..."
 
-if [ $ELAPSED -ge $TIMEOUT ]; then
-  echo "Deployment failed: /ping endpoint did not respond with 'pong' within 5 minutes"
+DEPLOYED_VERSION=$(curl -s --retry 24 --retry-delay 5 "https://${DOMAIN}/version")
+if [ "$DEPLOYED_VERSION" != "$EXPECTED_COMMIT" ]; then
+  echo "Deployment verification failed: expected $EXPECTED_COMMIT, but got $DEPLOYED_VERSION"
   exit 1
+else
+  echo "Deployment verified: version $DEPLOYED_VERSION matches expected $EXPECTED_COMMIT"
 fi
 
 echo "Checking WebSocket connectivity to wss://${DOMAIN}/graphql..."
