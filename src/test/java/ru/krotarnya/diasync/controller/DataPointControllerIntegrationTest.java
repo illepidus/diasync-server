@@ -24,7 +24,7 @@ class DataPointControllerIntegrationTest {
             """;
     private static final String GET_DATA_POINTS_QUERY = """
             query {
-                getDataPoints(userId: "test-user") {
+                getDataPoints(userId: "test-user", from: "2025-01-01T00:00:00Z") {
                     id
                 }
             }
