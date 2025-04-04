@@ -7,10 +7,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class VersionController {
     @Value("${git.branch:unknown}")
-    private String version;
+    private String branch;
+
+    @Value("${git.commit.id}")
+    private String commitId;
 
     @GetMapping("version")
     public String version() {
-        return version;
+        return branch + "@" + commitId;
     }
 }
