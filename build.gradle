@@ -49,7 +49,3 @@ tasks.named('test') {
 tasks.named('processResources') {
     dependsOn 'generateGitProperties'
 }
-
-tasks.named('bootRun') {
-    dependsOn 'generateGitProperties'
-}
