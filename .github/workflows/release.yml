@@ -20,17 +20,9 @@ jobs:
         run: cat .github/.env >> $GITHUB_ENV
 
       - name: Create release branch
-        id: create_branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          DATE=$(date +%Y-%m-%d)
-          COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
-          NEW_COUNT=$((COUNT + 1))
-          BRANCH_NAME="release-$DATE-$NEW_COUNT"
-          git checkout -b $BRANCH_NAME
-          git push origin $BRANCH_NAME
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        run: bash .github/create_release_branch.sh
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -54,18 +46,15 @@ jobs:
       - name: Deploy to server
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-        run: bash .github/deploy.sh
+        run: bash .github/deploy_to_server.sh
 
       - name: Verify deployment
         env:
           DOMAIN: ${{ env.DOMAIN }}
-        run: bash .github/verify.sh
+        run: bash .github/verify_deployment.sh
 
       - name: Delete release branch on failure
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BRANCH_NAME=${{ steps.create_branch.outputs.branch_name }}
-          git push origin --delete $BRANCH_NAME
-          echo "Release branch $BRANCH_NAME deleted due to workflow failure"
+        run: bash .github/delete_release_branch.sh
