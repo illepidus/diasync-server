@@ -8,14 +8,13 @@ if [ -z "$GITHUB_TOKEN" ]; then
 fi
 
 DATE=$(date +%Y-%m-%d)
-COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
+COUNT=$(git branch -r | grep -c " release-$DATE")
 NEW_COUNT=$((COUNT + 1))
 BRANCH_NAME="release-$DATE-$NEW_COUNT"
 
 git checkout -b "$BRANCH_NAME"
 git push origin "$BRANCH_NAME"
 
-# Передача имени ветки через GitHub Actions output
 if [ -n "$GITHUB_OUTPUT" ]; then
   echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 else
