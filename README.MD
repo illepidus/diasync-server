@@ -47,6 +47,7 @@ flowchart LR
 ```
 
 ### Интеграция
+* [Graphiql](https://diasync.krotarnya.ru/graphiql)
 * [Swagger](https://diasync.krotarnya.ru/swagger)
 * [API Docs](https://diasync.krotarnya.ru/api-docs)
 
