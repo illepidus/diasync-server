@@ -30,7 +30,7 @@ EOF
 docker save diasync-server:latest | $SSH_CMD docker load
 
 $SSH_CMD "mkdir -p ~/diasync"
-$SCP_CMD .github/{Dockerfile,Caddyfile,docker-compose.yml} "$SSH_USER@$SSH_HOST:~/diasync/"
+$SCP_CMD .github/docker/{Dockerfile,Caddyfile,docker-compose.yml} "$SSH_USER@$SSH_HOST:~/diasync/"
 
 $SSH_CMD << EOF
     cd ~/diasync
