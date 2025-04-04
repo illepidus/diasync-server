@@ -2,7 +2,6 @@ package ru.krotarnya.diasync.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.krotarnya.diasync.controller.DataPointController;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
 
@@ -26,19 +25,19 @@ public class DemoBloodDataGenerator {
     private static final Duration MAX_GAP = Duration.ofMinutes(180);
     private static final Duration STEP = Duration.ofSeconds(10);
 
-    private final DataPointController controller;
+    private final DataPointService dataPointService;
     private final Random random = new Random();
     private Double previousMgdl;
 
-    public DemoBloodDataGenerator(DataPointController controller) {
-        this.controller = controller;
+    public DemoBloodDataGenerator(DataPointService dataPointService) {
+        this.dataPointService = dataPointService;
         fillMissingData();
     }
 
     private void fillMissingData() {
         Instant now = Instant.now();
 
-        Optional<DataPoint> lastPoint = controller.getDataPoints(USER_ID, now.minus(MAX_GAP), now)
+        Optional<DataPoint> lastPoint = dataPointService.getDataPoints(USER_ID, now.minus(MAX_GAP), now)
                 .stream()
                 .max(Comparator.comparing(DataPoint::getTimestamp));
 
@@ -59,7 +58,7 @@ public class DemoBloodDataGenerator {
             timestamp = timestamp.plus(STEP);
         }
         if (!missingPoints.isEmpty()) {
-            controller.addDataPoints(missingPoints);
+            dataPointService.addDataPoints(missingPoints);
         }
     }
 
@@ -68,7 +67,7 @@ public class DemoBloodDataGenerator {
         Instant now = Instant.now();
         double mgdl = generateGlucoseValue(now);
         previousMgdl = mgdl;
-        controller.addDataPoints(List.of(createDataPoint(now, mgdl)));
+        dataPointService.addDataPoints(List.of(createDataPoint(now, mgdl)));
     }
 
     private double generateGlucoseValue(Instant timestamp) {
@@ -83,7 +82,7 @@ public class DemoBloodDataGenerator {
                 Math.sin(timestamp.getEpochSecond() / 7400.0 * 2 * Math.PI) * (CIRCADIAN_AMPLITUDE / 3) +
                 Math.sin(timestamp.getEpochSecond() / 12800.0 * 2 * Math.PI) * (CIRCADIAN_AMPLITUDE / 4);
 
-        mgdl += circadianEffect * (0.5 + random.nextDouble()); // Маскируем синусоиду случайностью
+        mgdl += circadianEffect * (0.5 + random.nextDouble());
         mgdl += (TARGET_MGDL - mgdl) * RETURN_TO_MEAN_FACTOR;
         mgdl = ALPHA * mgdl + (1 - ALPHA) * Optional.ofNullable(previousMgdl).orElse(mgdl);
 

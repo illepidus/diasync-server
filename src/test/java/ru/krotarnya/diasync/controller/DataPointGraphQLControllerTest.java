@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
-class DataPointControllerTest {
+class DataPointGraphQLControllerTest {
     @Autowired
-    private DataPointController controller;
+    private DataPointGraphQLController controller;
 
     @Test
     @Transactional

@@ -1,6 +1,5 @@
-package ru.krotarnya.diasync.controller;
+package ru.krotarnya.diasync.service;
 
-import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -8,52 +7,41 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.repository.DataPointRepository;
 
-@Controller
-public class DataPointController {
+@Service
+public class DataPointService {
     private final DataPointRepository dataPointRepository;
     private final Map<String, List<FluxSink<DataPoint>>> subscribers = new ConcurrentHashMap<>();
 
     @Autowired
-    public DataPointController(DataPointRepository dataPointRepository) {
+    public DataPointService(DataPointRepository dataPointRepository) {
         this.dataPointRepository = dataPointRepository;
     }
 
-    @QueryMapping
-    public List<DataPoint> getDataPoints(
-            @Argument String userId,
-            @Nullable @Argument Instant from,
-            @Nullable @Argument Instant to)
-    {
+    public List<DataPoint> getDataPoints(String userId, Instant from, Instant to) {
         return dataPointRepository.findByUserIdAndTimestampBetween(
                 userId,
                 Optional.ofNullable(from).orElse(Instant.EPOCH),
                 Optional.ofNullable(to).orElse(Instant.now()));
     }
 
-    @MutationMapping
-    public List<DataPoint> addDataPoints(@Argument List<DataPoint> dataPoints) {
+    public List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
         List<DataPoint> result = dataPointRepository.addDataPoints(dataPoints);
-        result.forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
+        result.forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of())
+                .forEach(sink -> sink.next(p)));
         return result;
     }
 
-    @MutationMapping
-    public int truncateDataPoints(@Argument String userId) {
+    public int truncateDataPoints(String userId) {
         return dataPointRepository.deleteByUserId(userId);
     }
 
-    @SubscriptionMapping
-    public Flux<DataPoint> onDataPointAdded(@Argument String userId) {
+    public Flux<DataPoint> onDataPointAdded(String userId) {
         return Flux.create(sink -> {
             subscribers.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(sink);
             sink.onDispose(() -> Optional.ofNullable(subscribers.get(userId))
