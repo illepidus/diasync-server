@@ -55,9 +55,9 @@ flowchart LR
 1. Сделать fork этого репозитория
 2. Изменить [.env](.github/.env) файл
 3. Прописать секрет SSH_KEY в разделе [Settings > Secrets and variables > Actions](../../settings/secrets/actions) вашего репозитория
-4. Запустить [Release workflow](../..//actions/workflows/release.yml) в вашем репозитории.
+4. Запустить [Release workflow](../../actions/workflows/release.yml) в вашем репозитории.
 
 Минимальные требования к серверу:
-* CPU / 1GB memory / 10GB storage 
-* Ubuntu 24.04 
+* 1 CPU / 1GB memory / 10GB storage 
+* Ubuntu 24.04
 * Пользователь должен иметь root права
