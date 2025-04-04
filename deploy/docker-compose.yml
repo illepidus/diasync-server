@@ -3,8 +3,8 @@ version: '3.8'
 services:
   app:
     image: diasync-server:latest
-    expose:
-      - "15080"
+    ports:
+      - "15080:15080"
     volumes:
       - diasync-db:/diasync/db
     environment:
