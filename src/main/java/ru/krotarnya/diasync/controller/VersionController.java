@@ -9,7 +9,7 @@ public class VersionController {
     @Value("${git.branch:unknown}")
     private String branch;
 
-    @Value("${git.commit.id}")
+    @Value("${git.commit.id:unknown}")
     private String commitId;
 
     @GetMapping("version")
