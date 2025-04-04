@@ -8,7 +8,7 @@ if [ -z "$GITHUB_TOKEN" ]; then
 fi
 
 DATE=$(date +%Y-%m-%d)
-COUNT=$(git branch -r | grep -c " release-$DATE")
+COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
 NEW_COUNT=$((COUNT + 1))
 BRANCH_NAME="release-$DATE-$NEW_COUNT"
 
