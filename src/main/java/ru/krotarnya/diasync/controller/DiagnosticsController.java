@@ -7,7 +7,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,7 +29,7 @@ public class DiagnosticsController {
     }
 
     @GetMapping(value = "/diagnostics", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<Map<String, Object>> getDiagnostics() {
+    public Map<String, Object> getDiagnostics() {
         Map<String, Object> diagnostics = new HashMap<>();
 
         diagnostics.put("springdoc.api-docs.path", apiDocsPath);
@@ -43,6 +42,6 @@ public class DiagnosticsController {
         diagnostics.put("java.version", System.getProperty("java.version"));
         diagnostics.put("server.port", environment.getProperty("server.port"));
 
-        return Mono.just(diagnostics);
+        return diagnostics;
     }
 }
