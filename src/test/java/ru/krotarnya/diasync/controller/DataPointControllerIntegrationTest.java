@@ -16,7 +16,7 @@ class DataPointControllerIntegrationTest {
     private static final String ADD_DATA_POINTS_QUERY = """
             mutation {
                 addDataPoints(
-                    dataPoints: [{ userId: "test-user", timestamp: "2025-01-01T00:00:00Z" }]
+                    dataPoints: [{ userId: "test-user", timestamp: "2020-01-01T00:00:00Z" }]
                 ) {
                     id
                 }
@@ -24,7 +24,7 @@ class DataPointControllerIntegrationTest {
             """;
     private static final String GET_DATA_POINTS_QUERY = """
             query {
-                getDataPoints(userId: "test-user", from: "2025-01-01T00:00:00Z") {
+                getDataPoints(userId: "test-user", from: "2020-01-01T00:00:00Z") {
                     id
                 }
             }
