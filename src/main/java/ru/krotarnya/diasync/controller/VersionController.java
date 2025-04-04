@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class VersionController {
-    @Value("${git.commit.id:unknown}")
-    private String commitId;
+    @Value("${git.branch:unknown}")
+    private String version;
 
     @GetMapping("version")
     public String version() {
-        return commitId;
+        return version;
     }
 }
