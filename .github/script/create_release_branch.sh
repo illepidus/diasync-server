@@ -1,9 +1,11 @@
 #!/bin/bash
-
-if [ -z "$GITHUB_TOKEN" ]; then
-  echo "Error: GITHUB_TOKEN is not set."
-  exit 1
-fi
+required_vars=("GITHUB_TOKEN")
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: Required environment variable $var is missing."
+        exit 1
+    fi
+done
 
 DATE=$(date +%Y-%m-%d)
 COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
@@ -13,8 +15,4 @@ BRANCH_NAME="release-$DATE-$NEW_COUNT"
 git checkout -b "$BRANCH_NAME"
 git push origin "$BRANCH_NAME"
 
-if [ -n "$GITHUB_OUTPUT" ]; then
-  echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
-else
-  echo "Created branch: $BRANCH_NAME"
-fi
+echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
