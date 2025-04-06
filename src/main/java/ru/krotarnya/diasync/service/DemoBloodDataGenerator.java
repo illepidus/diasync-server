@@ -20,13 +20,13 @@ public class DemoBloodDataGenerator {
     private static final double MIN_MGDL = 40;
     private static final double MAX_MGDL = 270;
     private static final double TARGET_MGDL = 120;
-    private static final double MAX_GAUSSIAN_SHIFT = 5;
-    private static final double MAX_CHANGE_PER_STEP = 3.0f;
+    private static final double MAX_GAUSSIAN_SHIFT = 10;
+    private static final double MAX_CHANGE_PER_STEP = 6.0f;
     private static final double ALPHA = 0.5f;
-    private static final double RETURN_TO_MEAN_FACTOR = 0.1f;
-    private static final double CIRCADIAN_AMPLITUDE = 2.0f;
+    private static final double RETURN_TO_MEAN_FACTOR = 0.05f;
+    private static final double CIRCADIAN_AMPLITUDE = 3.5f;
     private static final Duration MAX_GAP = Duration.ofMinutes(180);
-    private static final Duration STEP = Duration.ofSeconds(10);
+    private static final Duration STEP = Duration.ofSeconds(60);
 
     private final DataPointService dataPointService;
     private final Random random = new Random();
@@ -65,7 +65,7 @@ public class DemoBloodDataGenerator {
         }
     }
 
-    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void generateBloodPoint() {
         Instant now = Instant.now();
         double mgdl = generateGlucoseValue(now);

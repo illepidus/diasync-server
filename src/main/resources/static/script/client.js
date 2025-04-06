@@ -1,4 +1,6 @@
 const userId = "demo";
+const periodMillis = 3 * 60 * 60 * 1000;
+const marginMillis = 60 * 1000;
 const graphqlEndpoint = `${window.location.protocol}//${window.location.host}/graphql`;
 const wsEndpoint = `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/graphql`;
 const dataPoints = [];
@@ -43,9 +45,9 @@ const chart = new Chart(ctx, {
             x: {
                 type: 'time',
                 time: {unit: 'minute', stepSize: 10, displayFormats: {minute: 'HH:mm'}},
-                min: new Date(Date.now() - 60 * 60 * 1000),
+                min: new Date(Date.now() - periodMillis),
                 max: new Date(),
-                title: {display: true, text: 'Time', color: '#ececf1'},
+                title: {display: false, text: 'Time', color: '#ececf1'},
                 ticks: {color: '#ececf1', stepSize: 10, autoSkip: true},
                 grid: {color: 'rgba(255, 255, 255, 0.1)'}
             },
@@ -65,7 +67,7 @@ function updateStatus(connected) {
 
 async function fetchInitialData() {
     const now = new Date();
-    const oneHourAgo = new Date(now - 60 * 60 * 1000);
+    const oneHourAgo = new Date(now - periodMillis);
     const query = {
         query: `
             query {
@@ -143,10 +145,9 @@ function connectWebSocket() {
 
 function updateChart() {
     const now = Date.now();
-    const oneHourAgo = now - 60 * 60 * 1000;
-    chart.data.datasets[0].data = dataPoints.filter(point => point.x >= oneHourAgo);
-    chart.options.scales.x.min = oneHourAgo - 60 * 1000;
-    chart.options.scales.x.max = now + 60 * 1000;
+    chart.data.datasets[0].data = dataPoints.filter(point => point.x >= now - periodMillis);
+    chart.options.scales.x.min = now - periodMillis - marginMillis;
+    chart.options.scales.x.max = now + marginMillis;
 
     chart.options.scales.y.min = Math.round(Math.min(70, ...dataPoints.map(point => point.y))) - 5;
     chart.options.scales.y.max = Math.round(Math.max(180, ...dataPoints.map(point => point.y))) + 5;
