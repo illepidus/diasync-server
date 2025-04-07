@@ -53,7 +53,7 @@ const chart = new Chart(ctx, {
             },
             y: {
                 min: 65, max: 185,
-                title: {display: true, text: 'Glucose (mg/dL)', color: '#ececf1'},
+                title: {display: false, text: 'Glucose (mg/dL)', color: '#ececf1'},
                 ticks: {color: '#ececf1'},
                 grid: {color: 'rgba(255, 255, 255, 0.1)'}
             }
