@@ -42,7 +42,7 @@ flowchart LR
     click firebase href "https://firebase.google.com/"
     click xdrip_master,xdrip_slave href "https://github.com/NightscoutFoundation/xDrip"
     click aaps_master,aaps_slave href "https://github.com/nightscout/AndroidAPS"
-    click ds_master,ds_slave href "https://github.com/illepidus/diasync"
+    click ds_master,ds_slave href "https://github.com/illepidus/diasync-android"
     click nightscout href "https://github.com/nightscout/cgm-remote-monitor"
 ```
 
