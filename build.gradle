@@ -1,8 +1,13 @@
 plugins {
     id 'java'
+    id 'application'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.gorylenko.gradle-git-properties' version "2.5.0"
+}
+
+application {
+    mainClass = 'ru.krotarnya.diasync.DiasyncApplication'
 }
 
 group = 'ru.krotarnya'
