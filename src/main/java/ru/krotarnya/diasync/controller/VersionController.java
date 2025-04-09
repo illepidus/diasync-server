@@ -1,19 +1,21 @@
 package ru.krotarnya.diasync.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.krotarnya.diasync.service.AppVersionProvider;
 
 @RestController
+@RequestMapping("api/v1")
 public class VersionController {
-    @Value("${git.branch:unknown}")
-    private String branch;
+    private final AppVersionProvider versionService;
 
-    @Value("${git.commit.id:unknown}")
-    private String commitId;
+    public VersionController(AppVersionProvider versionService) {
+        this.versionService = versionService;
+    }
 
     @GetMapping("version")
     public String version() {
-        return branch + "@" + commitId;
+        return versionService.getVersion();
     }
 }
