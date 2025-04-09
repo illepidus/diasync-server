@@ -5,10 +5,9 @@ WORKDIR /diasync
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 COPY src ./src
-COPY .git ./.git
 
 RUN chmod +x ./gradlew && ./gradlew dependencies
-RUN ./gradlew build -x test
+RUN echo "Building project..." && ./gradlew build -x test || { echo "Build failed"; exit 1; }
 
 RUN mkdir -p /diasync/db
 
