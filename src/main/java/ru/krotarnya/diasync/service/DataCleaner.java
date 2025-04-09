@@ -20,7 +20,7 @@ public class DataCleaner {
         this.dataPointRepository = dataPointRepository;
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS)
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES)
     @Transactional
     public void cleanOldRecords() {
         Instant before = Instant.now().minus(Duration.ofDays(DAYS_TO_KEEP));
