@@ -14,7 +14,7 @@ java {
     }
 }
 
-jar {
+bootJar {
     archiveFileName = 'diasync.jar'
 }
 

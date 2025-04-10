@@ -45,7 +45,7 @@ jobs:
         run: ./gradlew test
 
       - name: Build JAR
-        run: ./gradlew build -x test
+        run: ./gradlew bootJar
 
       - name: Check build output
         run: ls -l build/libs/
