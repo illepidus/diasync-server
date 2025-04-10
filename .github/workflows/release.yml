@@ -50,6 +50,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t diasync-server:latest -f .github/docker/Dockerfile .
 
+      - name: Check build output
+        run: ls -l build/libs/
+
       - name: Deploy to server
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
