@@ -7,7 +7,7 @@ COPY gradle ./gradle
 COPY src ./src
 
 RUN chmod +x ./gradlew && ./gradlew dependencies
-RUN echo "Building project..." && ./gradlew build -x test || { echo "Build failed"; exit 1; }
+RUN ./gradlew build -x test
 
 RUN mkdir -p /diasync/db
 
