@@ -44,4 +44,9 @@ $SSH_CMD << EOF
     docker-compose up -d
 EOF
 
+echo "Cleaning up unused Docker images on remote server..."
+$SSH_CMD << 'EOF'
+    docker image prune -f
+EOF
+
 rm ssh_key
