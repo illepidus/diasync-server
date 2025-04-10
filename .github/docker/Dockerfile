@@ -1,10 +1,12 @@
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /diasync
 
 COPY build/libs/diasync.jar .
+RUN if [ ! -f diasync.jar ]; then echo "Error: executable jar not found" && exit 1; fi
+
 RUN mkdir -p /diasync/db
 
 EXPOSE 15080
 
-ENTRYPOINT ["java", "-jar", "/diasync/diasync.jar"]
+ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-jar", "/diasync/diasync.jar"]

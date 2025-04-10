@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/script/create_release_branch.sh
 
-      - name: Set up JDK 21
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -45,9 +45,6 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
 
       - name: Build JAR
         run: ./gradlew build -x test
