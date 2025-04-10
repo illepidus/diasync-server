@@ -15,10 +15,8 @@ COMMIT_HASH=$(git rev-parse HEAD)
 APP_VERSION="${BRANCH_NAME}@${COMMIT_HASH}"
 
 git checkout -b "$BRANCH_NAME"
-sed -i "s/version = .*/version = '$APP_VERSION'/" build.gradle
-git add build.gradle
-git commit -m "Update version to $BRANCH_NAME"
 git push origin "$BRANCH_NAME"
+sed -i "s/version = .*/version = '$APP_VERSION'/" build.gradle
 
 echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
