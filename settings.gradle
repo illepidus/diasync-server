@@ -1,1 +1,3 @@
 rootProject.name = 'diasync'
+group = 'ru.krotarnya'
+version = 'unspecified'

@@ -5,9 +5,6 @@ plugins {
     id 'com.gorylenko.gradle-git-properties' version "2.5.0"
 }
 
-group = 'ru.krotarnya'
-version = 'unspecified'
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -50,8 +47,4 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     jvmArgs "-javaagent:${classpath.find { it.name.contains('mockito-core') }}", "-Xshare:off"
-}
-
-tasks.named('processResources') {
-    dependsOn 'generateGitProperties'
 }
