@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Carbs {
+public final class Carbs {
     private Double grams;
 
     @Nullable

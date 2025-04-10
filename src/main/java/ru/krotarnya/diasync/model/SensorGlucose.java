@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SensorGlucose {
+public final class SensorGlucose {
     private Double mgdl;
     private String sensorId;
 

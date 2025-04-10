@@ -16,7 +16,7 @@ import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.repository.DataPointRepository;
 
 @Service
-public class DataPointService {
+public final class DataPointService {
     private static final Duration DEFAULT_PERIOD = Duration.ofHours(1);
 
     private final DataPointRepository dataPointRepository;

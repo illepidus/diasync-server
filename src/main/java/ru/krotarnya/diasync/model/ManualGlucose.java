@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ManualGlucose {
+public final class ManualGlucose {
     private Double mgdl;
 }

@@ -5,7 +5,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AppVersionProvider {
+public final class AppVersionProvider {
     private final BuildProperties buildProperties;
 
     public AppVersionProvider(BuildProperties buildProperties) {

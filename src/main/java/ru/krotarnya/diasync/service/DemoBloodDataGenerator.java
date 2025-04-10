@@ -14,7 +14,7 @@ import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
 
 @Service
-public class DemoBloodDataGenerator {
+public final class DemoBloodDataGenerator {
     private static final String USER_ID = "demo";
     private static final String SENSOR_ID = "demo-sensor-1";
     private static final double MIN_MGDL = 40;

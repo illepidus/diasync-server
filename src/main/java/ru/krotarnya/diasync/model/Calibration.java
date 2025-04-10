@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Calibration {
+public final class Calibration {
     private Double slope;
     private Double intercept;
 }
