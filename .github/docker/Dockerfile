@@ -2,15 +2,9 @@ FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /diasync
 
-COPY build.gradle settings.gradle gradlew ./
-COPY gradle ./gradle
-COPY src ./src
-
-RUN chmod +x ./gradlew && ./gradlew dependencies
-RUN ./gradlew build -x test
-
+COPY build/libs/diasync.jar .
 RUN mkdir -p /diasync/db
 
 EXPOSE 15080
 
-ENTRYPOINT ["java", "-jar", "/diasync/build/libs/diasync.jar"]
+ENTRYPOINT ["java", "-jar", "/diasync/diasync.jar"]

@@ -44,6 +44,9 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
+      - name: Build JAR
+        run: ./gradlew build -x test
+
       - name: Build Docker image
         run: docker build -t diasync-server:latest -f .github/docker/Dockerfile .
 
