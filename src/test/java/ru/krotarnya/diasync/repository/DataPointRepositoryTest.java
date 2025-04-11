@@ -7,15 +7,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
+import ru.krotarnya.diasync.model.Carbs;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DataJpaTest
 @SuppressWarnings("DataFlowIssue")
+@DataJpaTest
 class DataPointRepositoryTest {
 
     @Autowired
@@ -30,7 +31,7 @@ class DataPointRepositoryTest {
     }
 
     @Test
-    void testFindByUserIdAndTimestampBetween() {
+    void shouldFindPointsBetweenTimestamps() {
         DataPoint dp1 = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -53,7 +54,7 @@ class DataPointRepositoryTest {
     }
 
     @Test
-    void testDeleteByTimestampBefore() {
+    void shouldDeletePointsBeforeTimestamp() {
         DataPoint dp1 = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -73,7 +74,7 @@ class DataPointRepositoryTest {
     }
 
     @Test
-    void testDeleteByUserId() {
+    void shouldDeletePointsByUserId() {
         DataPoint dp1 = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -93,7 +94,7 @@ class DataPointRepositoryTest {
     }
 
     @Test
-    void testUpsertDataPoint_existingSameData() {
+    void shouldNotUpdateIfDataIsSame() {
         DataPoint dp = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -103,25 +104,26 @@ class DataPointRepositoryTest {
 
         Optional<DataPoint> result = repository.upsertDataPoint(dp.withoutId());
 
-        assertEquals(Optional.empty(), result);
+        assertTrue(result.isEmpty());
         assertEquals(1, repository.count());
     }
 
     @Test
-    void testUpsertDataPoint_existingDifferentData() {
-        DataPoint dp1 = DataPoint.builder()
+    void shouldUpdateIfDataIsDifferent() {
+        DataPoint original = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
                 .sensorGlucose(SensorGlucose.builder().mgdl(100.).build())
                 .build();
-        DataPoint saved = repository.save(dp1);
-        DataPoint dp2 = DataPoint.builder()
+        DataPoint saved = repository.save(original);
+
+        DataPoint incoming = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
                 .sensorGlucose(SensorGlucose.builder().mgdl(200.).build())
                 .build();
 
-        Optional<DataPoint> result = repository.upsertDataPoint(dp2);
+        Optional<DataPoint> result = repository.upsertDataPoint(incoming);
 
         assertTrue(result.isPresent());
         assertEquals(200.0, result.get().getSensorGlucose().getMgdl(), 0.001);
@@ -130,7 +132,7 @@ class DataPointRepositoryTest {
     }
 
     @Test
-    void testUpsertDataPoint_newData() {
+    void shouldInsertNewDataPointIfNotExists() {
         DataPoint dp = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -140,12 +142,12 @@ class DataPointRepositoryTest {
         Optional<DataPoint> result = repository.upsertDataPoint(dp);
 
         assertTrue(result.isPresent());
-        assertEquals(dp.getSensorGlucose().getMgdl(), result.get().getSensorGlucose().getMgdl(), 0.001);
+        assertEquals(100.0, result.get().getSensorGlucose().getMgdl(), 0.001);
         assertEquals(1, repository.count());
     }
 
     @Test
-    void testAddDataPoints() {
+    void shouldAddMultipleDataPoints() {
         DataPoint dp1 = DataPoint.builder()
                 .userId(testUserId)
                 .timestamp(testTimestamp)
@@ -156,11 +158,73 @@ class DataPointRepositoryTest {
                 .timestamp(testTimestamp.plusSeconds(3600))
                 .sensorGlucose(SensorGlucose.builder().mgdl(200.).build())
                 .build();
-        List<DataPoint> dataPoints = List.of(dp1, dp2);
-
-        List<DataPoint> result = repository.addDataPoints(dataPoints);
+        List<DataPoint> result = repository.addDataPoints(List.of(dp1, dp2));
 
         assertEquals(2, result.size());
         assertEquals(2, repository.count());
+    }
+
+    @Test
+    void shouldNotUpdateIfAllComparedFieldsAreNull() {
+        DataPoint existing = DataPoint.builder()
+                .userId(testUserId)
+                .timestamp(testTimestamp)
+                .build();
+        repository.save(existing);
+
+        DataPoint incoming = existing.withoutId();
+
+        Optional<DataPoint> result = repository.upsertDataPoint(incoming);
+
+        assertTrue(result.isEmpty());
+        assertEquals(1, repository.count());
+    }
+
+    @Test
+    void shouldRetainExistingFieldsIfNewOnesAreNull() {
+        DataPoint existing = DataPoint.builder()
+                .userId(testUserId)
+                .timestamp(testTimestamp)
+                .carbs(Carbs.builder().grams(25.).build())
+                .sensorGlucose(SensorGlucose.builder().mgdl(100.).build())
+                .build();
+        repository.save(existing);
+
+        DataPoint incoming = DataPoint.builder()
+                .userId(testUserId)
+                .timestamp(testTimestamp)
+                .build();
+
+        Optional<DataPoint> result = repository.upsertDataPoint(incoming);
+
+        assertTrue(result.isPresent());
+        DataPoint updated = result.get();
+        assertEquals(25.0, updated.getCarbs().getGrams(), 0.001);
+        assertEquals(100.0, updated.getSensorGlucose().getMgdl(), 0.001);
+        assertNull(updated.getManualGlucose());
+    }
+
+    @Test
+    void shouldUpdateOnlyNonNullFields() {
+        DataPoint existing = DataPoint.builder()
+                .userId(testUserId)
+                .timestamp(testTimestamp)
+                .sensorGlucose(SensorGlucose.builder().mgdl(100.0).build())
+                .build();
+        repository.save(existing);
+
+        DataPoint incoming = DataPoint.builder()
+                .userId(testUserId)
+                .timestamp(testTimestamp)
+                .carbs(Carbs.builder().grams(25.).build())
+                .build();
+
+        Optional<DataPoint> result = repository.upsertDataPoint(incoming);
+
+        assertTrue(result.isPresent());
+        DataPoint updated = result.get();
+        assertEquals(25.0, updated.getCarbs().getGrams(), 0.001);
+        assertEquals(100.0, updated.getSensorGlucose().getMgdl(), 0.001);
+        assertNull(updated.getManualGlucose());
     }
 }

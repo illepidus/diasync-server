@@ -3,8 +3,8 @@ package ru.krotarnya.diasync.controller;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,60 +16,113 @@ import ru.krotarnya.diasync.model.SensorGlucose;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@Transactional
 class DataPointGraphQLControllerTest {
+
     @Autowired
     private DataPointGraphQLController controller;
 
-    @Test
-    @Transactional
-    @SuppressWarnings("DataFlowIssue")
-    void testFullCycle() {
-        String userId = UUID.randomUUID().toString();
-        String sensorId = UUID.randomUUID().toString();
-        Instant timestamp = Instant.now();
-        double mgdl = 100;
+    private String userId;
+    private String sensorId;
+    private Instant timestamp;
+    private double mgdl;
 
-        DataPoint.DataPointBuilder dataPointBuilder = DataPoint.builder()
+    @BeforeEach
+    void setUp() {
+        userId = UUID.randomUUID().toString();
+        sensorId = UUID.randomUUID().toString();
+        timestamp = Instant.now();
+        mgdl = 100.0;
+    }
+
+    private DataPoint createDataPoint(Instant time) {
+        return DataPoint.builder()
                 .userId(userId)
-                .timestamp(timestamp)
+                .timestamp(time)
                 .sensorGlucose(SensorGlucose.builder()
                         .mgdl(mgdl)
                         .sensorId(sensorId)
-                        .build());
+                        .build())
+                .build();
+    }
 
+    @Test
+    void shouldReceiveDataPointViaSubscription() {
         Flux<DataPoint> subscription = controller.onDataPointAdded(userId);
+
         StepVerifier.create(subscription)
-                .then(() -> controller.addDataPoints(List.of(dataPointBuilder.build())))
-                .expectNextMatches(saved -> saved.getUserId().equals(userId)
-                        && saved.getSensorGlucose().getMgdl().equals(mgdl)
-                        && saved.getSensorGlucose().getSensorId().equals(sensorId)
-                        && saved.getTimestamp().equals(timestamp)
-                        && Objects.isNull(saved.getSensorGlucose().getCalibration())
-                        && Objects.isNull(saved.getManualGlucose())
-                        && Objects.isNull(saved.getCarbs())
+                .then(() -> controller.addDataPoints(List.of(createDataPoint(timestamp))))
+                .expectNextMatches(dp ->
+                        dp.getUserId().equals(userId) &&
+                        dp.getTimestamp().equals(timestamp) &&
+                        dp.getSensorGlucose() != null &&
+                        dp.getSensorGlucose().getSensorId().equals(sensorId) &&
+                        dp.getSensorGlucose().getMgdl() == mgdl &&
+                        dp.getSensorGlucose().getCalibration() == null &&
+                        dp.getManualGlucose() == null &&
+                        dp.getCarbs() == null
                 )
                 .thenCancel()
                 .verify();
+    }
 
-        List<DataPoint> points = controller.getDataPoints(userId,
-                timestamp.minusSeconds(3600),
-                timestamp.plusSeconds(3600));
+    @Test
+    void shouldAddAndRetrieveSingleDataPoint() {
+        controller.addDataPoints(List.of(createDataPoint(timestamp)));
+
+        List<DataPoint> points = controller.getDataPoints(
+                userId,
+                timestamp.minusSeconds(60),
+                timestamp.plusSeconds(60)
+        );
+
         assertEquals(1, points.size());
-        DataPoint retrievedPoint = points.getFirst();
-        assertEquals(userId, retrievedPoint.getUserId());
-        assertEquals(timestamp, retrievedPoint.getTimestamp());
-        assertEquals(mgdl, retrievedPoint.getSensorGlucose().getMgdl());
-        assertEquals(sensorId, retrievedPoint.getSensorGlucose().getSensorId());
-        assertNull(retrievedPoint.getSensorGlucose().getCalibration());
-        assertNull(retrievedPoint.getManualGlucose());
-        assertNull(retrievedPoint.getCarbs());
 
-        controller.addDataPoints(List.of(dataPointBuilder.timestamp(timestamp.plus(Duration.ofMinutes(1))).build()));
-        List<DataPoint> updatedPoints = controller.getDataPoints(userId,
-                timestamp.minusSeconds(3600),
-                timestamp.plusSeconds(3600));
-        assertEquals(2, updatedPoints.size());
+        DataPoint dp = points.getFirst();
+        assertEquals(userId, dp.getUserId());
+        assertEquals(timestamp, dp.getTimestamp());
+        assertEquals(mgdl, dp.getSensorGlucose().getMgdl());
+        assertEquals(sensorId, dp.getSensorGlucose().getSensorId());
+        assertNull(dp.getSensorGlucose().getCalibration());
+        assertNull(dp.getManualGlucose());
+        assertNull(dp.getCarbs());
+    }
+
+    @Test
+    void shouldStoreMultipleDataPoints() {
+        controller.addDataPoints(List.of(
+                createDataPoint(timestamp),
+                createDataPoint(timestamp.plus(Duration.ofMinutes(1)))
+        ));
+
+        List<DataPoint> points = controller.getDataPoints(
+                userId,
+                timestamp.minusSeconds(60),
+                timestamp.plusSeconds(120)
+        );
+
+        assertEquals(2, points.size());
+    }
+
+    @Test
+    void shouldTruncateAllUserDataPoints() {
+        controller.addDataPoints(List.of(
+                createDataPoint(timestamp),
+                createDataPoint(timestamp.plus(Duration.ofMinutes(1)))
+        ));
+
+        int removed = controller.truncateDataPoints(userId);
+        assertEquals(2, removed);
+
+        List<DataPoint> afterTruncate = controller.getDataPoints(
+                userId,
+                timestamp.minusSeconds(60),
+                timestamp.plusSeconds(120)
+        );
+
+        assertTrue(afterTruncate.isEmpty());
     }
 }
