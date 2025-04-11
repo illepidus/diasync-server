@@ -1,13 +1,9 @@
 #!/bin/bash
-required_vars=("GITHUB_TOKEN")
-for var in "${required_vars[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo "Error: Required environment variable $var is missing."
-        exit 1
-    fi
+for var in GITHUB_TOKEN; do
+  [ -z "${!var}" ] && { echo "Error: $var is not set."; exit 1; }
 done
 
-DATE=$(date +%Y-%m-%d)
+DATE=$(TZ="Europe/Moscow" date +%Y-%m-%d)
 COUNT=$(git branch -r | grep "release-$DATE" | wc -l | xargs)
 NEW_COUNT=$((COUNT + 1))
 BRANCH_NAME="release-$DATE-$NEW_COUNT"

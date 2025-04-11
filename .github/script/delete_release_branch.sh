@@ -1,10 +1,6 @@
 #!/bin/bash
-required_vars=("BRANCH_NAME" "GITHUB_TOKEN")
-for var in "${required_vars[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo "Error: Required environment variable $var is missing."
-        exit 1
-    fi
+for var in BRANCH_NAME GITHUB_TOKEN; do
+  [ -z "${!var}" ] && { echo "Error: $var is not set."; exit 1; }
 done
 
 git push origin --delete "$BRANCH_NAME"
