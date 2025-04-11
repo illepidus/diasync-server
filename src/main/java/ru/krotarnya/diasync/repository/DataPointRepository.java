@@ -51,20 +51,20 @@ public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
     }
 
     @Transactional
-    default DataPoint updateExisting(DataPoint existing, DataPoint dataPoint) {
-        DataPoint updated = dataPoint.toBuilder()
-                .id(existing.getId())
-                .carbs(updateField(existing, dataPoint, DataPoint::getCarbs))
-                .manualGlucose(updateField(existing, dataPoint, DataPoint::getManualGlucose))
-                .sensorGlucose(updateField(existing, dataPoint, DataPoint::getSensorGlucose))
+    default DataPoint updateExisting(DataPoint existingPoint, DataPoint newPoint) {
+        DataPoint updated = newPoint.toBuilder()
+                .id(existingPoint.getId())
+                .carbs(updateField(existingPoint, newPoint, DataPoint::getCarbs))
+                .manualGlucose(updateField(existingPoint, newPoint, DataPoint::getManualGlucose))
+                .sensorGlucose(updateField(existingPoint, newPoint, DataPoint::getSensorGlucose))
                 .build();
 
         return save(updated);
     }
 
-    private <T> @Nullable T updateField(DataPoint existing, DataPoint dataPoint, Function<DataPoint, T> extractor) {
-        if (extractor.apply(dataPoint) != null) return extractor.apply(dataPoint);
-        if (extractor.apply(existing) != null) return extractor.apply(existing);
+    private <T> @Nullable T updateField(DataPoint existingPoint, DataPoint newPoint, Function<DataPoint, T> extractor) {
+        if (extractor.apply(newPoint) != null) return extractor.apply(newPoint);
+        if (extractor.apply(existingPoint) != null) return extractor.apply(existingPoint);
         return null;
     }
 }
