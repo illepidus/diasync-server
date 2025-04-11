@@ -2,21 +2,19 @@ package ru.krotarnya.diasync.repository;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.LockModeType;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.transaction.annotation.Transactional;
 import ru.krotarnya.diasync.model.DataPoint;
 
 public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
-    @Transactional
     List<DataPoint> findByUserIdAndTimestampBetween(String userId, Instant from, Instant to);
 
     @Transactional
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     int deleteByTimestampBefore(Instant before);
 
     @Transactional
@@ -24,13 +22,14 @@ public interface DataPointRepository extends JpaRepository<DataPoint, Long> {
 
     @Transactional
     default List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
-        return dataPoints.stream().map(this::upsertDataPoint).flatMap(Optional::stream).toList();
+        return dataPoints.stream()
+                .map(this::upsertDataPoint)
+                .flatMap(Optional::stream)
+                .toList();
     }
 
-    @Transactional
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<DataPoint> findByUserIdAndTimestamp(String userId, Instant timestamp);
-
 
     @Transactional
     default Optional<DataPoint> upsertDataPoint(DataPoint newPoint) {
