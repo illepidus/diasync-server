@@ -13,7 +13,7 @@ import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.service.DataPointService;
 
 @RestController
-public final class DataPointRestController extends RestApiController {
+public final class DataPointRestController extends RestApiController implements DataPointController {
     private final DataPointService dataPointService;
 
     @Autowired
@@ -25,7 +25,8 @@ public final class DataPointRestController extends RestApiController {
     public List<DataPoint> getDataPoints(
             @RequestParam("userId") String userId,
             @RequestParam(value = "from", required = false) Instant from,
-            @RequestParam(value = "to", required = false) Instant to) {
+            @RequestParam(value = "to", required = false) Instant to)
+    {
         return dataPointService.getDataPoints(userId, from, to);
     }
 

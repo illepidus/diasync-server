@@ -14,7 +14,7 @@ import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.service.DataPointService;
 
 @Controller
-public final class DataPointGraphQLController {
+public final class DataPointGraphQLController implements DataPointController {
     private final DataPointService dataPointService;
 
     @Autowired
