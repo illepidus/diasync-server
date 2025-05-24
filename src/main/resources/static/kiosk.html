@@ -1,37 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diasync Kiosk</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
-    html, body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; }
-    #glucose {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      width:100%; text-align:center;
-      font-family: 'Share Tech Mono', 'Orbitron', Audiowide, monospace;
-      font-size:50vh; font-weight:700; color:#fff; z-index:1;
-      text-shadow: -5px -5px 0 #000, 5px -5px 0 #000, -5px 5px 0 #000, 5px 5px 0 #000;
-    }
-    canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1/dist/chartjs-plugin-annotation.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <script src="https://unpkg.com/graphql-ws@5/umd/graphql-ws.min.js"></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Diasync Kiosk</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #glucose {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            font-family: 'Audiowide', sans-serif;
+            font-size: 50vh;
+            font-weight: 700;
+            color: #fff;
+            z-index: 1;
+            text-shadow: -5px -5px 0 #000,
+            5px -5px 0 #000,
+            -5px 5px 0 #000,
+            5px 5px 0 #000;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/graphql-ws@5/umd/graphql-ws.min.js"></script>
 </head>
 <body>
-  <canvas id="bg"></canvas>
-  <div id="glucose">--</div>
-  <script>
-    // Config defaults
+<canvas id="bg"></canvas>
+<div id="glucose">--</div>
+
+<script>
+    // Defaults
     const DEFAULTS = {
-      period: '1h',      // 1h, 3h, etc.
-      low: 70,           // mg/dL
-      high: 180,         // mg/dL
-      stale: 10,         // minutes
-      baseRadius: 6      // px for 1h
+        period: '1h',
+        low: 70,
+        high: 180,
+        stale: 10,
+        baseRadius: 6
     };
 
     // Parse URL params
@@ -41,14 +68,37 @@
     const STALE_MIN = parseFloat(params.get('stale')) || DEFAULTS.stale;
     const LOW_MG = parseFloat(params.get('low')) || DEFAULTS.low;
     const HIGH_MG = parseFloat(params.get('high')) || DEFAULTS.high;
+    const UNIT = params.get('unit') === 'mgdl' ? 'mgdl' : 'mmol';
 
     // Helpers
-    const toMs = { s:1e3, m:6e4, h:3.6e6, d:8.64e7 };
+    const toMs = {s: 1e3, m: 6e4, h: 3.6e6, d: 8.64e7};
+
     function parsePeriod(str) {
-      const m = /^([0-9]+)([smhd])$/.exec(str);
-      return m ? parseInt(m[1]) * toMs[m[2]] : toMs.h;
+        const m = /^(\d+)([smhd])$/.exec(str);
+        return m ? parseInt(m[1]) * toMs[m[2]] : toMs.h;
     }
-    function mgToMmol(mg) { return mg / 18; }
+
+    function mgToMmol(mg) {
+        return mg / 18;
+    }
+
+    function convert(mg) {
+        return UNIT === 'mgdl' ? mg : mgToMmol(mg);
+    }
+
+    function formatDisplay(mg) {
+        return UNIT === 'mgdl'
+            ? String(Math.round(mg))
+            : mgToMmol(mg).toFixed(1);
+    }
+
+    function getColor(mg) {
+        return mg < LOW_MG
+            ? 'red'
+            : mg > HIGH_MG
+                ? 'orange'
+                : 'white';
+    }
 
     // State
     const PERIOD_MS = parsePeriod(PERIOD_STR);
@@ -60,92 +110,153 @@
     Chart.register(Chart.registry.getPlugin('annotation'));
     const ctx = document.getElementById('bg').getContext('2d');
     let chart;
+
     function initChart() {
-      const radius = Math.max(2, Math.round(DEFAULTS.baseRadius * toMs.h / PERIOD_MS));
-      chart = new Chart(ctx, {
-        type: 'scatter',
-        data: { datasets: [{ data: [], pointRadius: radius, backgroundColor: [] }] },
-        options: {
-          animation:false, responsive:true, maintainAspectRatio:false,
-          scales: {
-            x: { display:false, type:'time', min:()=>Date.now()-PERIOD_MS, max:()=>Date.now() },
-            y: { display:false }
-          },
-          plugins:{
-            legend:{ display:false },
-            annotation:{ annotations: {
-              lowLine:  { type:'line', yMin: mgToMmol(LOW_MG), yMax: mgToMmol(LOW_MG), borderColor:'red',   borderWidth:2 },
-              highLine: { type:'line', yMin: mgToMmol(HIGH_MG), yMax: mgToMmol(HIGH_MG), borderColor:'orange', borderWidth:2 }
-            }}
-          }
-        }
-      });
+        const radius = Math.max(2,
+            Math.round(DEFAULTS.baseRadius * toMs.h / PERIOD_MS)
+        );
+        chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    data: [],
+                    pointRadius: radius,
+                    backgroundColor: []
+                }]
+            },
+            options: {
+                animation: false,
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: false,
+                        type: 'time',
+                        min: () => Date.now() - PERIOD_MS,
+                        max: () => Date.now()
+                    },
+                    y: {
+                        display: false
+                    }
+                },
+                plugins: {
+                    legend: {display: false},
+                    annotation: {
+                        annotations: {
+                            lowLine: {
+                                type: 'line',
+                                yMin: convert(LOW_MG),
+                                yMax: convert(LOW_MG),
+                                borderColor: 'red',
+                                borderWidth: 2
+                            },
+                            highLine: {
+                                type: 'line',
+                                yMin: convert(HIGH_MG),
+                                yMax: convert(HIGH_MG),
+                                borderColor: 'orange',
+                                borderWidth: 2
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
-    // Update display and chart
+    // Update functions
     function updateDisplay(mg) {
-      const mmol = mgToMmol(mg).toFixed(1);
-      glucoseEl.textContent = mmol;
-      glucoseEl.style.color = mg < LOW_MG ? 'red' : mg > HIGH_MG ? 'orange' : 'white';
+        glucoseEl.textContent = formatDisplay(mg);
+        glucoseEl.style.color = getColor(mg);
+        lastTimestamp = Date.now();
     }
-    function updateChart() {
-      const now = Date.now();
-      chart.options.scales.x.min = now - PERIOD_MS;
-      chart.options.scales.x.max = now;
-      const recent = dataPoints.filter(pt => new Date(pt.x).getTime() >= now - PERIOD_MS);
-      chart.data.datasets[0].data = recent;
-      chart.data.datasets[0].backgroundColor = recent.map(p => p.backgroundColor);
-      if (recent.length) {
-        const ys = recent.map(p => p.y);
-        chart.options.scales.y.min = Math.min(...ys, mgToMmol(LOW_MG)) -1;
-        chart.options.scales.y.max = Math.max(...ys, mgToMmol(HIGH_MG))+1;
-      }
-      chart.update('none');
 
-      // stale indicator
-      const ageMin = (now - lastTimestamp) / 60000;
-      if (ageMin > STALE_MIN) {
-        glucoseEl.textContent = '???';
-        glucoseEl.style.color = 'purple';
-      }
+    function updateChart() {
+        const now = Date.now();
+        chart.options.scales.x.min = now - PERIOD_MS;
+        chart.options.scales.x.max = now;
+
+        const recent = dataPoints.filter(pt =>
+            new Date(pt.x).getTime() >= now - PERIOD_MS
+        );
+        chart.data.datasets[0].data = recent;
+        chart.data.datasets[0].backgroundColor = recent.map(p => p.backgroundColor);
+
+        if (recent.length) {
+            const ys = recent.map(p => p.y);
+            const lowVal = convert(LOW_MG);
+            const highVal = convert(HIGH_MG);
+            const delta = UNIT === 'mmol' ? 1 : 18;
+            chart.options.scales.y.min = Math.min(...ys, lowVal) - delta;
+            chart.options.scales.y.max = Math.max(...ys, highVal) + delta;
+        }
+
+        chart.update('none');
+
+        // stale indicator
+        const ageMin = (now - lastTimestamp) / 60000;
+        if (ageMin > STALE_MIN) {
+            glucoseEl.textContent = '???';
+            glucoseEl.style.color = 'purple';
+        }
     }
 
     // Load initial data
     async function loadInitial() {
-      const to = new Date().toISOString();
-      const from = new Date(Date.now() - PERIOD_MS).toISOString();
-      const query = `query($uid:String!,$from:String!,$to:String!){getDataPoints(userId:$uid,from:$from,to:$to){timestamp sensorGlucose{mgdl}}}`;
-      const res = await fetch('/graphql', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query,variables:{uid:USER_ID,from,to}}) });
-      const pts = (await res.json()).data.getDataPoints || [];
-      pts.forEach(pt => {
-        const mg = pt.sensorGlucose.mgdl;
-        const mmol = mgToMmol(mg);
-        dataPoints.push({ x:pt.timestamp, y:mmol, backgroundColor: mg<LOW_MG?'red':mg>HIGH_MG?'orange':'white' });
-      });
-      if (pts.length) {
-        const lastMg = pts[pts.length-1].sensorGlucose.mgdl;
-        updateDisplay(lastMg);
-        lastTimestamp = new Date(pts[pts.length-1].timestamp).getTime();
-      }
+        const to = new Date().toISOString();
+        const from = new Date(Date.now() - PERIOD_MS).toISOString();
+        const query =
+            `query($uid:String!,$from:String!,$to:String!){` +
+            `getDataPoints(userId:$uid,from:$from,to:$to){timestamp sensorGlucose{mgdl}}}`;
+        const res = await fetch('/graphql', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query, variables: {uid: USER_ID, from, to}})
+        });
+        const pts = (await res.json()).data.getDataPoints || [];
+        pts.forEach(pt => {
+            const mg = pt.sensorGlucose.mgdl;
+            dataPoints.push({
+                x: pt.timestamp,
+                y: convert(mg),
+                backgroundColor: getColor(mg)
+            });
+        });
+        if (pts.length) {
+            updateDisplay(pts[pts.length - 1].sensorGlucose.mgdl);
+        }
     }
 
-    // Subscription
+    // Real-time subscription
     function startSubscription() {
-      const client = graphqlWs.createClient({ url:`${location.protocol==='https:'?'wss':'ws'}://${location.host}/graphql`, retryAttempts:Infinity, shouldRetry:()=>true });
-      const subQ = `subscription{onDataPointAdded(userId:"${USER_ID}"){timestamp sensorGlucose{mgdl}}}`;
-      client.subscribe({query:subQ}, {
-        next({data}){
-          const pt = data.onDataPointAdded;
-          const mg = pt.sensorGlucose.mgdl;
-          updateDisplay(mg);
-          dataPoints.push({ x:pt.timestamp, y:mgToMmol(mg), backgroundColor: mg<LOW_MG?'red':mg>HIGH_MG?'orange':'white' });
-          lastTimestamp = new Date(pt.timestamp).getTime();
-        }, error:()=>setTimeout(startSubscription,3000), complete:()=>setTimeout(startSubscription,3000)
-      });
+        const client = graphqlWs.createClient({
+            url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/graphql`,
+            retryAttempts: Infinity,
+            shouldRetry: () => true
+        });
+        const subQ =
+            `subscription{onDataPointAdded(userId:"${USER_ID}")` +
+            `{timestamp sensorGlucose{mgdl}}}`;
+        client.subscribe({query: subQ}, {
+            next({data}) {
+                const mg = data.onDataPointAdded.sensorGlucose.mgdl;
+                dataPoints.push({
+                    x: data.onDataPointAdded.timestamp,
+                    y: convert(mg),
+                    backgroundColor: getColor(mg)
+                });
+                updateDisplay(mg);
+            },
+            error: () => setTimeout(startSubscription, 3000),
+            complete: () => setTimeout(startSubscription, 3000)
+        });
     }
 
-    // Init
-    initChart(); loadInitial(); setInterval(updateChart,1000); startSubscription();
-  </script>
+    // Kick off
+    initChart();
+    loadInitial();
+    setInterval(updateChart, 1000);
+    startSubscription();
+</script>
 </body>
 </html>

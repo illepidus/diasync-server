@@ -47,18 +47,40 @@ flowchart LR
 ```
 
 ## Интеграция с API
+
 Поддерживается как GraphQL, так и REST API
+
 * [Graphiql](https://diasync.krotarnya.ru/graphiql)
 * [Swagger](https://diasync.krotarnya.ru/swagger)
 
+## Kiosk интерфейс
+
+В дополнение к основному приложению, реализован лёгкий web-фронтенд, доступный по пути
+[/kiosk](https://diasync.krotarnya.ru/kiosk)
+
+### Query параметры kiosk интерфейса
+
+| Параметр | Описание                                                              | По умолчанию |
+|----------|-----------------------------------------------------------------------|--------------|
+| userId   | Идентификатор пользователя                                            | demo         |
+| period   | Период отображения данных                                             | 1h           |
+| low      | Нижний порог уровня глюкозы в мг/дл                                   | 70           |
+| high     | Верхний порог уровня глюкозы в мг/дл                                  | 180          |
+| stale    | Время в минутах, после которого текущее значение считается устаревшим | 10           |
+| unit     | Единицы отображения: mmol или mgdl                                    | mmol         |
+
 ## Установка
+
 Если есть необходимость развернуть отдельную инсталляцию diasync server, предлагаются следующие шаги:
+
 1. Сделать fork этого репозитория
 2. Изменить [.env](.github/.env) файл
-3. Прописать секрет SSH_KEY в разделе [Settings > Secrets and variables > Actions](../../settings/secrets/actions) вашего репозитория
+3. Прописать секрет SSH_KEY в разделе [Settings > Secrets and variables > Actions](../../settings/secrets/actions)
+   вашего репозитория
 4. Запустить [Release workflow](../../actions/workflows/release.yml) в вашем репозитории.
 
 Минимальные требования к серверу:
-* 1 CPU / 1GB memory / 10GB storage 
+
+* 1 CPU / 1GB memory / 10GB storage
 * Ubuntu 24.04
 * Пользователь должен иметь root права
