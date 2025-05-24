@@ -31,6 +31,7 @@
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://unpkg.com/graphql-ws@5.16.0/umd/graphql-ws.min.js"></script>
 </head>
@@ -43,6 +44,8 @@
     const userId = urlParams.get('userId') || 'demo';
     const periodParam = urlParams.get('period') || '1h';
     const periodMs = parsePeriod(periodParam);
+    const low = parseFloat(urlParams.get('low')) || 70;
+    const high = parseFloat(urlParams.get('high')) || 180;
 
     function parsePeriod(str) {
       const match = str.match(/(\d+)([smhd])/);
@@ -61,10 +64,10 @@
       data: {
         datasets: [{
           data: [],
-          backgroundColor: 'rgba(0, 255, 0, 0.8)',
+          pointBackgroundColor: (ctx) => ctx.raw?.backgroundColor || 'white',
           pointRadius: 3,
           showLine: false
-        }],
+        }]
       },
       options: {
         animation: false,
@@ -75,33 +78,56 @@
               displayFormats: { minute: 'HH:mm' },
               unit: 'minute',
               stepSize: 15,
-              round: 'minute',
-              tooltipFormat: 'HH:mm'
+              tooltipFormat: 'HH:mm',
+              round: false
             },
             ticks: {
               color: 'white',
-              autoSkip: false,
-              stepSize: 15,
-              callback: function(value, index, ticks) {
+              maxRotation: 0,
+              minRotation: 0,
+              callback: function(value) {
                 const date = new Date(value);
                 const minutes = date.getMinutes();
-                return (minutes % 15 === 0) ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+                return minutes % 15 === 0 ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
               }
             },
             grid: {
-              color: 'rgba(255,255,255,0.15)',
+              color: (ctx) => {
+                const date = new Date(ctx.tick.value);
+                return date.getMinutes() % 15 === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)';
+              },
               lineWidth: 1
             },
-            min: () => Date.now() - periodMs,
-            max: () => Date.now(),
+            min: () => new Date(Date.now() - periodMs),
+            max: () => new Date()
           },
           y: {
             ticks: { color: 'white' },
             beginAtZero: false
           }
         },
-        plugins: { legend: { display: false } },
-      },
+        plugins: {
+          legend: { display: false },
+          annotation: {
+            annotations: {
+              lowLine: {
+                type: 'line',
+                yMin: low / 18.0,
+                yMax: low / 18.0,
+                borderColor: 'red',
+                borderWidth: 1,
+              },
+              highLine: {
+                type: 'line',
+                yMin: high / 18.0,
+                yMax: high / 18.0,
+                borderColor: 'orange',
+                borderWidth: 1,
+              }
+            }
+          }
+        }
+      }
     });
 
     function updateChart() {
@@ -110,6 +136,11 @@
       chart.data.datasets[0].data = recent;
       chart.options.scales.x.min = new Date(cutoff);
       chart.options.scales.x.max = new Date();
+      const yValues = recent.map(p => p.y);
+      const minY = Math.min(...yValues, low / 18.0) - 1;
+      const maxY = Math.max(...yValues, high / 18.0) + 1;
+      chart.options.scales.y.min = minY;
+      chart.options.scales.y.max = maxY;
       chart.update();
     }
 
@@ -136,11 +167,14 @@
         const mgdl = pt.sensorGlucose?.mgdl;
         if (mgdl !== undefined) {
           const mmol = mgdl / 18.0;
-          dataPoints.push({ x: pt.timestamp, y: mmol });
+          dataPoints.push({ x: pt.timestamp, y: mmol, backgroundColor: mgdl < low ? 'red' : mgdl > high ? 'orange' : 'white' });
         }
       });
       if (points.length > 0) {
-        glucoseDisplay.textContent = (points[points.length - 1].sensorGlucose.mgdl / 18.0).toFixed(1);
+        const lastMgdl = points[points.length - 1].sensorGlucose.mgdl;
+        const lastMmol = lastMgdl / 18.0;
+        glucoseDisplay.textContent = lastMmol.toFixed(1);
+        glucoseDisplay.style.color = lastMgdl < low ? 'red' : lastMgdl > high ? 'orange' : 'white';
       }
       updateChart();
     }
@@ -171,7 +205,8 @@
             if (mgdl !== undefined) {
               const mmol = mgdl / 18.0;
               glucoseDisplay.textContent = mmol.toFixed(1);
-              dataPoints.push({ x: pt.timestamp, y: mmol });
+              glucoseDisplay.style.color = mgdl < low ? 'red' : mgdl > high ? 'orange' : 'white';
+              dataPoints.push({ x: pt.timestamp, y: mmol, backgroundColor: mgdl < low ? 'red' : mgdl > high ? 'orange' : 'white' });
               updateChart();
             }
           },
