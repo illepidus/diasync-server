@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diasync Kiosk</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #glucose {
+      font-size: 120px;
+      font-weight: bold;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://unpkg.com/graphql-ws@5.16.0/umd/graphql-ws.min.js"></script>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div id="glucose">--</div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('userId') || 'demo';
+    const periodParam = urlParams.get('period') || '1h';
+    const periodMs = parsePeriod(periodParam);
+
+    function parsePeriod(str) {
+      const match = str.match(/(\d+)([smhd])/);
+      if (!match) return 3600000;
+      const value = parseInt(match[1]);
+      const unit = match[2];
+      return value * ({ s: 1000, m: 60000, h: 3600000, d: 86400000 }[unit] || 3600000);
+    }
+
+    const glucoseDisplay = document.getElementById('glucose');
+    const ctx = document.getElementById('bg').getContext('2d');
+    const dataPoints = [];
+
+    const chart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: [],
+          backgroundColor: 'rgba(0, 255, 0, 0.8)',
+          pointRadius: 3,
+          showLine: false
+        }],
+      },
+      options: {
+        animation: false,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              displayFormats: { minute: 'HH:mm' },
+              unit: 'minute',
+              stepSize: 15,
+              round: 'minute',
+              tooltipFormat: 'HH:mm'
+            },
+            ticks: {
+              color: 'white',
+              autoSkip: false,
+              stepSize: 15,
+              callback: function(value, index, ticks) {
+                const date = new Date(value);
+                const minutes = date.getMinutes();
+                return (minutes % 15 === 0) ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+              }
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.15)',
+              lineWidth: 1
+            },
+            min: () => Date.now() - periodMs,
+            max: () => Date.now(),
+          },
+          y: {
+            ticks: { color: 'white' },
+            beginAtZero: false
+          }
+        },
+        plugins: { legend: { display: false } },
+      },
+    });
+
+    function updateChart() {
+      const cutoff = Date.now() - periodMs;
+      const recent = dataPoints.filter(pt => new Date(pt.x).getTime() >= cutoff);
+      chart.data.datasets[0].data = recent;
+      chart.options.scales.x.min = new Date(cutoff);
+      chart.options.scales.x.max = new Date();
+      chart.update();
+    }
+
+    setInterval(updateChart, 1000);
+
+    async function loadInitialData() {
+      const to = new Date().toISOString();
+      const from = new Date(Date.now() - periodMs).toISOString();
+      const query = `query($userId: String!, $from: String!, $to: String!) {
+        getDataPoints(userId: $userId, from: $from, to: $to) {
+          timestamp
+          sensorGlucose { mgdl }
+        }
+      }`;
+
+      const response = await fetch('/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables: { userId, from, to } })
+      });
+      const result = await response.json();
+      const points = result.data?.getDataPoints || [];
+      points.forEach(pt => {
+        const mgdl = pt.sensorGlucose?.mgdl;
+        if (mgdl !== undefined) {
+          const mmol = mgdl / 18.0;
+          dataPoints.push({ x: pt.timestamp, y: mmol });
+        }
+      });
+      if (points.length > 0) {
+        glucoseDisplay.textContent = (points[points.length - 1].sensorGlucose.mgdl / 18.0).toFixed(1);
+      }
+      updateChart();
+    }
+
+    loadInitialData();
+
+    function startSubscription() {
+      const client = graphqlWs.createClient({
+        url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/graphql`,
+        lazy: false,
+        retryAttempts: Infinity,
+        shouldRetry: () => true
+      });
+
+      const query = `subscription {
+        onDataPointAdded(userId: "${userId}") {
+          timestamp
+          sensorGlucose { mgdl }
+        }
+      }`;
+
+      let dispose = client.subscribe(
+        { query },
+        {
+          next: ({ data }) => {
+            const pt = data.onDataPointAdded;
+            const mgdl = pt.sensorGlucose?.mgdl;
+            if (mgdl !== undefined) {
+              const mmol = mgdl / 18.0;
+              glucoseDisplay.textContent = mmol.toFixed(1);
+              dataPoints.push({ x: pt.timestamp, y: mmol });
+              updateChart();
+            }
+          },
+          error: (err) => {
+            console.error('GraphQL error', err);
+            setTimeout(() => startSubscription(), 3000);
+          },
+          complete: () => {
+            console.log('Subscription complete');
+            setTimeout(() => startSubscription(), 3000);
+          }
+        }
+      );
+
+      setInterval(() => {
+        console.log('Re-subscribing...');
+        dispose();
+        startSubscription();
+      }, 5 * 60 * 1000);
+    }
+
+    startSubscription();
+  </script>
+</body>
+</html>
