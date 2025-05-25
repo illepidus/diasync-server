@@ -18,8 +18,8 @@ const centerTextPlugin = {
   }
 };
 
-const DEFAULTS = { period: '1h', low: 70, high: 180, stale: 10, baseRadius: 6 };
 const params    = new URLSearchParams(location.search);
+const DEFAULTS = { period: '1h', low: 70, high: 180, stale: 10, baseRadius: 6 };
 const USER_ID   = params.get('userId') || 'demo';
 const UNIT      = params.get('unit') === 'mgdl' ? 'mgdl' : 'mmol';
 const USE_CALIB = params.get('calibrations') !== 'false';
