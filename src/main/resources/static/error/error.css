@@ -1,3 +1,15 @@
+body {
+    background-color: #343541;
+    color: #ececf1;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    color: #10a37f;
+}
+
 .container {
     height: 100vh;
     display: flex;
