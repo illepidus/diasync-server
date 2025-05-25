@@ -10,12 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import ru.krotarnya.diasync.model.DataPoint;
 
 
 @Service
-public class DemoDataScheduler {
+public class DemoDataService {
     private static final Duration BACKOFF_INTERVAL = Duration.ofSeconds(5);
-    private static final Logger logger = LoggerFactory.getLogger(DemoDataScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DemoDataService.class);
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final DataPointService dataPointService;
@@ -23,7 +24,7 @@ public class DemoDataScheduler {
     private final String userId;
     private final Duration prefillInterval;
 
-    public DemoDataScheduler(
+    public DemoDataService(
             DataPointService dataPointService,
             List<DemoDataGenerator> generators,
             @Value("${demo.userId}") String userId,
@@ -51,10 +52,11 @@ public class DemoDataScheduler {
         Instant finish = Instant.now();
         Instant start = finish.minus(prefillInterval);
 
-        Stream.iterate(start, i -> i.isBefore(finish), i -> i.plus(generator.period()))
+        List<DataPoint> dataPoints = Stream.iterate(start, i -> i.isBefore(finish), i -> i.plus(generator.period()))
                 .map(generator::generate)
-                .map(List::of)
-                .forEach(dataPointService::addDataPoints);
+                .toList();
+
+        dataPointService.addDataPoints(dataPoints);
     }
 
 
@@ -72,8 +74,7 @@ public class DemoDataScheduler {
             try {
                 while (true) {
                     Instant now = Instant.now();
-                    var dataPoint = generator.generate(now);
-                    dataPointService.addDataPoints(List.of(dataPoint));
+                    dataPointService.addDataPoint(generator.generate(now));
                     Thread.sleep(generator.period());
                 }
             } catch (InterruptedException e) {

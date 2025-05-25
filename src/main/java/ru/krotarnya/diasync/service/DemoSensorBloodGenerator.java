@@ -53,8 +53,8 @@ public class DemoSensorBloodGenerator extends DemoDataGenerator {
     protected final double signal(Instant timestamp) {
         return BASE_LINE + BASE_DEVIATION * (
                 signal(timestamp, HARMONIC_1_AMPLITUDE, HARMONIC_1_PERIOD) +
-                signal(timestamp, HARMONIC_2_AMPLITUDE, HARMONIC_2_PERIOD) +
-                signal(timestamp, HARMONIC_3_AMPLITUDE, HARMONIC_3_PERIOD));
+                        signal(timestamp, HARMONIC_2_AMPLITUDE, HARMONIC_2_PERIOD) +
+                        signal(timestamp, HARMONIC_3_AMPLITUDE, HARMONIC_3_PERIOD));
     }
 
     private double signal(Instant timestamp, double amplitude, Duration period) {

@@ -2,10 +2,11 @@ package ru.krotarnya.diasync.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import org.springframework.stereotype.Component;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.ManualGlucose;
 
-//TODO: Fix upsert and enable
+@Component
 public final class DemoManualBloodGenerator extends DemoSensorBloodGenerator {
     private static final Duration BASE_PERIOD = Duration.ofMinutes(30);
     private static final Duration TIME_SHIFT = Duration.ofMinutes(10);

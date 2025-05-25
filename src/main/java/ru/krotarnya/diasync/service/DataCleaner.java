@@ -8,19 +8,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.krotarnya.diasync.repository.DataPointRepository;
 
 @Service
 public class DataCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DataCleaner.class);
-    private final DataPointRepository dataPointRepository;
+    private final DataPointService dataPointService;
     private final int daysToKeep;
 
     public DataCleaner(
-            DataPointRepository dataPointRepository,
+            DataPointService dataPointService,
             @Value("${diasync.database.cleanup.days-to-keep}") int daysToKeep)
     {
-        this.dataPointRepository = dataPointRepository;
+        this.dataPointService = dataPointService;
         this.daysToKeep = daysToKeep;
     }
 
@@ -28,7 +27,7 @@ public class DataCleaner {
     @Scheduled(fixedDelayString = "#{T(java.time.Duration).parse('${diasync.database.cleanup.interval}').toMillis()}")
     public void cleanOldRecords() {
         Instant before = Instant.now().minus(Duration.ofDays(daysToKeep));
-        int pointCount = dataPointRepository.deleteByTimestampBefore(before);
+        int pointCount = dataPointService.deleteByTimestampBefore(before);
         logger.info("Deleted {} records older than {} days at {}", pointCount, daysToKeep, Instant.now());
     }
 }
