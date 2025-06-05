@@ -35,15 +35,18 @@ const PERIOD_MS = (() => {
 const ctx = document.getElementById('bg').getContext('2d');
 const carbsTextPlugin = {
     id: 'carbsText',
-    afterDatasetsDraw(chart) {
+    afterDraw(chart) {
         const {ctx, chartArea, scales} = chart;
         ctx.save();
         ctx.fillStyle = 'yellow';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.font = 'bold 24px Audiowide, sans-serif';
         visibleCarbs.forEach(pt => {
-            const x = scales.x.getPixelForValue(pt.x);
+            const x = scales.x.getPixelForValue(new Date(pt.x));
+            ctx.strokeText(`${pt.grams}g`, x, chartArea.bottom - 4);
             ctx.fillText(`${pt.grams}g`, x, chartArea.bottom - 4);
         });
         ctx.restore();
@@ -221,6 +224,7 @@ function loadInitial() {
             if (last?.mgdl != null) {
                 updateDisplay(last.mgdl, last.calibration);
             }
+            updateChart();
         })
         .catch(err => console.error('Failed to load data:', err));
 }
@@ -261,6 +265,7 @@ function startSubscription() {
             if (cb && cb.grams != null) {
                 carbsPoints.push({x: ts, grams: cb.grams});
             }
+            updateChart();
         },
         error: () => setTimeout(startSubscription, 3000),
         complete: () => setTimeout(startSubscription, 3000)
