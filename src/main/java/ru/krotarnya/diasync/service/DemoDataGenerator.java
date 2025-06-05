@@ -7,13 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import ru.krotarnya.diasync.model.DataPoint;
 
 public abstract class DemoDataGenerator {
+    private static final Duration MINIMUM_PERIOD = Duration.ofSeconds(1);
+
     @Value("${demo.userId}")
     private String userId;
 
     private final Random random = new Random();
-
-    protected DemoDataGenerator() {
-    }
 
     protected abstract Duration basePeriod();
 
@@ -29,9 +28,11 @@ public abstract class DemoDataGenerator {
         return random;
     }
 
-    public Duration period() {
+    public final Duration period() {
         long base = basePeriod().toMillis();
         long noise = (long) (periodStdDev().toMillis() * random().nextGaussian());
-        return (base + noise > 1000) ? Duration.ofMillis(Math.max(0L, base + noise)) : period();
+        return (base + noise > MINIMUM_PERIOD.toMillis())
+                ? Duration.ofMillis(Math.max(0L, base + noise))
+                : MINIMUM_PERIOD;
     }
 }
