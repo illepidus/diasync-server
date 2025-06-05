@@ -1,19 +1,35 @@
 const centerTextPlugin = {
     id: 'centerText',
     afterDatasetsDraw(chart) {
-        const {ctx, width, height} = chart;
+        const { ctx, width, height } = chart;
         const text = chart.options.plugins.centerText?.text;
         const color = chart.options.plugins.centerText?.color || '#fff';
         if (!text) return;
+
         ctx.save();
-        ctx.font = 'bold 48vh Audiowide, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
-        ctx.lineWidth = 10;
         ctx.strokeStyle = '#000';
-        ctx.strokeText(text, width / 2, height / 2);
-        ctx.fillText(text, width / 2, height / 2);
+
+        const fontFamily = 'Chakra Petch, sans-serif';
+        let fontSize = height * 0.8;
+        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+
+        let textMetrics = ctx.measureText(text);
+        while ((textMetrics.width > width * 0.9 || fontSize > height * 0.8) && fontSize > 10) {
+            fontSize -= 2;
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+            textMetrics = ctx.measureText(text);
+        }
+
+        const offsetY = (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+        const centerX = width / 2;
+        const centerY = height / 2 + offsetY;
+
+        ctx.lineWidth = fontSize * 0.025;
+        ctx.strokeText(text, centerX, centerY);
+        ctx.fillText(text, centerX, centerY);
         ctx.restore();
     }
 };

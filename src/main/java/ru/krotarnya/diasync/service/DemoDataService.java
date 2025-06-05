@@ -73,9 +73,8 @@ public class DemoDataService {
         return () -> {
             try {
                 while (true) {
-                    Instant now = Instant.now();
-                    dataPointService.addDataPoint(generator.generate(now));
                     Thread.sleep(generator.period());
+                    dataPointService.addDataPoint(generator.generate(Instant.now()));
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
