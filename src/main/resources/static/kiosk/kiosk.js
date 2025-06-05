@@ -46,8 +46,9 @@ const carbsTextPlugin = {
         ctx.font = 'bold 24px Audiowide, sans-serif';
         visibleCarbs.forEach(pt => {
             const x = scales.x.getPixelForValue(new Date(pt.x));
-            ctx.strokeText(`${pt.grams}g`, x, chartArea.bottom - 4);
-            ctx.fillText(`${pt.grams}g`, x, chartArea.bottom - 4);
+            const g = Math.round(pt.grams);
+            ctx.strokeText(`${g}g`, x, chartArea.bottom - 4);
+            ctx.fillText(`${g}g`, x, chartArea.bottom - 4);
         });
         ctx.restore();
     }
@@ -99,6 +100,13 @@ function initChart() {
                     backgroundColor: 'red',
                     borderColor: 'white',
                     borderWidth: radius / 2
+                },
+                {
+                    label: 'Carbs',
+                    data: [],
+                    pointRadius: 0,
+                    pointHitRadius: 10,
+                    yAxisID: 'carbsAxis'
                 }
             ]
         },
@@ -109,7 +117,8 @@ function initChart() {
             interaction: {mode: 'nearest', intersect: true},
             scales: {
                 x: {display: false, type: 'time', min: () => Date.now() - PERIOD_MS, max: () => Date.now()},
-                y: {display: false}
+                y: {display: false},
+                carbsAxis: {display: false, min: 0, max: 1}
             },
             plugins: {
                 legend: {display: false},
@@ -127,6 +136,8 @@ function initChart() {
                                     `Slope: ${d.calibration?.slope?.toFixed(3) || '-'}`,
                                     `Intercept: ${d.calibration?.intercept?.toFixed(3) || '-'}`
                                 ];
+                            } else if (d.grams !== undefined) {
+                                return [`Carbs: ${d.grams.toFixed(1)}g`];
                             } else {
                                 return [`Manual: ${UNIT === 'mgdl' ? Math.round(d.y) : (d.y / 18).toFixed(1)} ${UNIT}`];
                             }
@@ -163,6 +174,7 @@ function updateChart() {
     chart.data.datasets[0].data = recentSensor;
     chart.data.datasets[0].backgroundColor = recentSensor.map(p => p.backgroundColor);
     chart.data.datasets[1].data = recentManual;
+    chart.data.datasets[2].data = visibleCarbs.map(p => ({x: p.x, y: 0, grams: p.grams}));
 
     if (recentSensor.length || recentManual.length) {
         const allY = [...recentSensor.map(p => p.mgdl), ...recentManual.map(p => p.y)];
