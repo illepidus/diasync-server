@@ -33,10 +33,29 @@ const PERIOD_MS = (() => {
 })();
 
 const ctx = document.getElementById('bg').getContext('2d');
-Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin);
+const carbsTextPlugin = {
+    id: 'carbsText',
+    afterDatasetsDraw(chart) {
+        const {ctx, chartArea, scales} = chart;
+        ctx.save();
+        ctx.fillStyle = 'yellow';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.font = 'bold 24px Audiowide, sans-serif';
+        visibleCarbs.forEach(pt => {
+            const x = scales.x.getPixelForValue(pt.x);
+            ctx.fillText(`${pt.grams}g`, x, chartArea.bottom - 4);
+        });
+        ctx.restore();
+    }
+};
+
+Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin, carbsTextPlugin);
 
 const sensorPoints = [];
 const manualPoints = [];
+const carbsPoints = [];
+let visibleCarbs = [];
 let lastTimestamp = Date.now();
 
 function applyCalib(mgdl, cal) {
@@ -136,6 +155,7 @@ function updateChart() {
 
     const recentSensor = sensorPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
     const recentManual = manualPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
+    visibleCarbs = carbsPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
 
     chart.data.datasets[0].data = recentSensor;
     chart.data.datasets[0].backgroundColor = recentSensor.map(p => p.backgroundColor);
@@ -164,6 +184,7 @@ function loadInitial() {
       timestamp
       sensorGlucose{mgdl sensorId calibration{slope intercept}}
       manualGlucose{mgdl}
+      carbs{grams}
     }}`;
     fetch('/graphql', {
         method: 'POST',
@@ -191,6 +212,9 @@ function loadInitial() {
                 if (mg && mg.mgdl != null) {
                     manualPoints.push({x: ts, y: mg.mgdl});
                 }
+                if (pt.carbs && pt.carbs.grams != null) {
+                    carbsPoints.push({x: ts, grams: pt.carbs.grams});
+                }
             });
 
             const last = pts.at(-1)?.sensorGlucose;
@@ -211,6 +235,7 @@ function startSubscription() {
     timestamp
     sensorGlucose{mgdl sensorId calibration{slope intercept}}
     manualGlucose{mgdl}
+    carbs{grams}
   }}`;
     client.subscribe({query: subQ}, {
         next({data}) {
@@ -231,6 +256,10 @@ function startSubscription() {
             }
             if (mg && mg.mgdl != null) {
                 manualPoints.push({x: ts, y: mg.mgdl});
+            }
+            const cb = data.onDataPointAdded.carbs;
+            if (cb && cb.grams != null) {
+                carbsPoints.push({x: ts, grams: cb.grams});
             }
         },
         error: () => setTimeout(startSubscription, 3000),
