@@ -49,7 +49,6 @@ public class DataPointRepositoryImpl implements DataPointRepositoryCustom {
         return Optional.of(jpa.save(updated));
     }
 
-    @Transactional
     protected DataPoint updateExisting(DataPoint existingPoint, DataPoint newPoint) {
         DataPoint updated = newPoint.toBuilder()
                 .id(existingPoint.getId())
