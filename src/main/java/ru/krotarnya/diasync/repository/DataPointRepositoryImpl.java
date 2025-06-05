@@ -46,16 +46,18 @@ public class DataPointRepositoryImpl implements DataPointRepositoryCustom {
         }
 
         DataPoint updated = updateExisting(existing, newPoint);
-        return Optional.of(jpa.save(updated));
+        return Optional.of(updated);
     }
 
+    @Transactional
     protected DataPoint updateExisting(DataPoint existingPoint, DataPoint newPoint) {
-        return newPoint.toBuilder()
+        DataPoint updated = newPoint.toBuilder()
                 .id(existingPoint.getId())
                 .carbs(updateField(existingPoint, newPoint, DataPoint::getCarbs))
                 .manualGlucose(updateField(existingPoint, newPoint, DataPoint::getManualGlucose))
                 .sensorGlucose(updateField(existingPoint, newPoint, DataPoint::getSensorGlucose))
                 .build();
+        return jpa.save(updated);
     }
 
     private <T> @Nullable T updateField(DataPoint existingPoint, DataPoint newPoint, Function<DataPoint, T> extractor) {
