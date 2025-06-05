@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glucose Display Fonts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Chakra+Petch:wght@700&family=Orbitron:wght@700&family=Rajdhani:wght@700&family=Electrolize&family=Alata&family=Titillium+Web:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: orange;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    .display {
+      font-size: 48vh;
+      font-weight: bold;
+      text-align: center;
+    }
+    .font-name {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 1.5em;
+      font-family: sans-serif;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="font-name" id="fontName"></div>
+  <div class="display" id="valueDisplay">
+    5.5
+  </div>
+
+  <script>
+    const fonts = [
+      'Alata',
+      'Audiowide',
+      'Chakra Petch',
+      'Electrolize',
+      'Orbitron',
+      'Rajdhani',
+      'Titillium Web'
+    ];
+
+    let currentFontIndex = 0;
+    let currentValue = 5.5;
+
+    const display = document.getElementById('valueDisplay');
+    const fontName = document.getElementById('fontName');
+
+    function updateFont() {
+      const font = fonts[currentFontIndex];
+      display.style.fontFamily = `'${font}', sans-serif`;
+      fontName.textContent = font;
+    }
+
+    function updateValue() {
+      display.textContent = currentValue.toFixed(1);
+      if (currentValue >= 10.0) {
+        display.style.color = 'orange';
+      } else if (currentValue < 4.0) {
+        display.style.color = 'red';
+      } else {
+        display.style.color = 'white';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        currentFontIndex = (currentFontIndex + 1) % fonts.length;
+        updateFont();
+      } else if (e.key === 'ArrowLeft') {
+        currentFontIndex = (currentFontIndex - 1 + fonts.length) % fonts.length;
+        updateFont();
+      } else if (e.key === 'ArrowUp') {
+        currentValue += 0.1;
+        updateValue();
+      } else if (e.key === 'ArrowDown') {
+        currentValue -= 0.1;
+        updateValue();
+      }
+    });
+
+    updateFont();
+    updateValue();
+  </script>
+</body>
+</html>
