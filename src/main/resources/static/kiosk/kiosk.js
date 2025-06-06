@@ -49,10 +49,33 @@ const PERIOD_MS = (() => {
 })();
 
 const ctx = document.getElementById('bg').getContext('2d');
-Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin);
+const carbsTextPlugin = {
+    id: 'carbsText',
+    afterDraw(chart) {
+        const {ctx, chartArea, scales} = chart;
+        ctx.save();
+        ctx.fillStyle = 'yellow';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.font = 'bold 24px Audiowide, sans-serif';
+        visibleCarbs.forEach(pt => {
+            const x = scales.x.getPixelForValue(new Date(pt.x));
+            const g = Math.round(pt.grams);
+            ctx.strokeText(`${g}g`, x, chartArea.bottom - 4);
+            ctx.fillText(`${g}g`, x, chartArea.bottom - 4);
+        });
+        ctx.restore();
+    }
+};
+
+Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin, carbsTextPlugin);
 
 const sensorPoints = [];
 const manualPoints = [];
+const carbsPoints = [];
+let visibleCarbs = [];
 let lastTimestamp = Date.now();
 
 function applyCalib(mgdl, cal) {
@@ -93,6 +116,13 @@ function initChart() {
                     backgroundColor: 'red',
                     borderColor: 'white',
                     borderWidth: radius / 2
+                },
+                {
+                    label: 'Carbs',
+                    data: [],
+                    pointRadius: 0,
+                    pointHitRadius: 10,
+                    yAxisID: 'carbsAxis'
                 }
             ]
         },
@@ -103,7 +133,8 @@ function initChart() {
             interaction: {mode: 'nearest', intersect: true},
             scales: {
                 x: {display: false, type: 'time', min: () => Date.now() - PERIOD_MS, max: () => Date.now()},
-                y: {display: false}
+                y: {display: false},
+                carbsAxis: {display: false, min: 0, max: 1}
             },
             plugins: {
                 legend: {display: false},
@@ -121,6 +152,8 @@ function initChart() {
                                     `Slope: ${d.calibration?.slope?.toFixed(3) || '-'}`,
                                     `Intercept: ${d.calibration?.intercept?.toFixed(3) || '-'}`
                                 ];
+                            } else if (d.grams !== undefined) {
+                                return [`Carbs: ${d.grams.toFixed(1)}g`];
                             } else {
                                 return [`Manual: ${UNIT === 'mgdl' ? Math.round(d.y) : (d.y / 18).toFixed(1)} ${UNIT}`];
                             }
@@ -152,10 +185,12 @@ function updateChart() {
 
     const recentSensor = sensorPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
     const recentManual = manualPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
+    visibleCarbs = carbsPoints.filter(p => new Date(p.x).getTime() >= now - PERIOD_MS);
 
     chart.data.datasets[0].data = recentSensor;
     chart.data.datasets[0].backgroundColor = recentSensor.map(p => p.backgroundColor);
     chart.data.datasets[1].data = recentManual;
+    chart.data.datasets[2].data = visibleCarbs.map(p => ({x: p.x, y: 0, grams: p.grams}));
 
     if (recentSensor.length || recentManual.length) {
         const allY = [...recentSensor.map(p => p.mgdl), ...recentManual.map(p => p.y)];
@@ -180,6 +215,7 @@ function loadInitial() {
       timestamp
       sensorGlucose{mgdl sensorId calibration{slope intercept}}
       manualGlucose{mgdl}
+      carbs{grams}
     }}`;
     fetch('/graphql', {
         method: 'POST',
@@ -207,12 +243,16 @@ function loadInitial() {
                 if (mg && mg.mgdl != null) {
                     manualPoints.push({x: ts, y: mg.mgdl});
                 }
+                if (pt.carbs && pt.carbs.grams != null) {
+                    carbsPoints.push({x: ts, grams: pt.carbs.grams});
+                }
             });
 
             const last = pts.at(-1)?.sensorGlucose;
             if (last?.mgdl != null) {
                 updateDisplay(last.mgdl, last.calibration);
             }
+            updateChart();
         })
         .catch(err => console.error('Failed to load data:', err));
 }
@@ -227,6 +267,7 @@ function startSubscription() {
     timestamp
     sensorGlucose{mgdl sensorId calibration{slope intercept}}
     manualGlucose{mgdl}
+    carbs{grams}
   }}`;
     client.subscribe({query: subQ}, {
         next({data}) {
@@ -248,6 +289,11 @@ function startSubscription() {
             if (mg && mg.mgdl != null) {
                 manualPoints.push({x: ts, y: mg.mgdl});
             }
+            const cb = data.onDataPointAdded.carbs;
+            if (cb && cb.grams != null) {
+                carbsPoints.push({x: ts, grams: cb.grams});
+            }
+            updateChart();
         },
         error: () => setTimeout(startSubscription, 3000),
         complete: () => setTimeout(startSubscription, 3000)
