@@ -6,9 +6,6 @@ import org.springframework.stereotype.Component;
 import ru.krotarnya.diasync.model.Carbs;
 import ru.krotarnya.diasync.model.DataPoint;
 
-/**
- * @author ivblinov
- */
 @Component
 public class DemoCarbsGenerator extends DemoDataGenerator {
     private static final Duration BASE_PERIOD = Duration.ofMinutes(30);
