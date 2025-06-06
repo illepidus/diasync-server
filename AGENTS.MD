@@ -1,22 +1,27 @@
 # AGENTS.md
 
-This repository hosts a Java 21 Spring Boot application built with Gradle.
-Use the guidelines below when modifying the project.
+Этот репозиторий содержит Spring Boot-приложение на Java 21, собираемое с помощью Gradle.  
+Используй следующие рекомендации при изменении проекта.
 
-## Testing
+## Тестирование
 
-- Always run `./gradlew test` before committing. Fix any failures.
-- Use JUnit 5 and Mockito for new tests. Place them under `src/test/java`.
+- Всегда запускай `./gradlew test` перед коммитом. Исправляй любые ошибки.
+- Для новых тестов используй JUnit 5 и Mockito. Размещай их в `src/test/java`.
 
-## Building & Running
+## Сборка и запуск
 
-- Build or run with the provided Gradle wrapper (`./gradlew`).
-- Run the server locally using `./gradlew bootRun` or by executing the jar from
-  `./gradlew bootJar`.
+- Сборку и запуск выполняй через Gradle wrapper (`./gradlew`).
+- Запусти сервер локально через `./gradlew bootRun` или выполнив jar-файл, собранный командой `./gradlew bootJar`.
 
-## Project structure
+## Структура проекта
 
-- Application code lives in `src/main/java/ru/krotarnya/diasync`.
-- Resources (static files, configuration) are under `src/main/resources`.
-- Test code lives in `src/test/java/ru/krotarnya/diasync`
-- Documentation resides in `README.MD`
+- Код приложения находится в `src/main/java/ru/krotarnya/diasync`.
+- Ресурсы (статические файлы, конфигурация) — в `src/main/resources`.
+- Тесты — в `src/test/java/ru/krotarnya/diasync`.
+- Документация — в `README.MD`.
+
+## Язык и codestyle
+
+- Весь код и комментарии внутри него должны быть на английском языке.
+- Основное правило для комментариев в коде: если сомневаешься нужен ли тут комментарий, значит он точно не нужен.
+- Отвечай на русском языке. Придерживайся неформального стиля.
