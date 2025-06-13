@@ -34,6 +34,38 @@ const centerTextPlugin = {
     }
 };
 
+const offlineStatusPlugin = {
+    id: 'offlineStatus',
+    afterDatasetsDraw(chart) {
+        if (!chart.options.plugins.offlineStatus?.enabled) return;
+
+        const {ctx, width, height} = chart;
+        const text = 'OFFLINE';
+        const color = COLORS.offline;
+        const fontFamily = 'Chakra Petch, sans-serif';
+
+        let fontSize = height * 0.1;
+        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+
+        while (ctx.measureText(text).width > width * 0.95 && fontSize > 10) {
+            fontSize -= 2;
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+        }
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = color;
+
+        const centerX = width / 2;
+        const offsetY = height * 0.025;
+
+        ctx.fillText(text, centerX, offsetY);
+        ctx.restore();
+    }
+};
+
+let isWebSocketConnected = false;
 const params = new URLSearchParams(location.search);
 const DEFAULTS = {period: '1h', low: 70, high: 180, stale: 10, baseRadius: 6};
 const USER_ID = params.get('userId') || 'demo';
@@ -49,16 +81,18 @@ const PERIOD_MS = (() => {
 })();
 
 const COLORS = {
+    stale: '#ff00ff',
+    offline: '#ff0030',
     low: '#ff0030',
     high: '#ffc000',
     normal: '#ffffff',
-    stale: '#ff00ff',
     manual: '#ff0030',
     stroke: '#000000'
 };
 
 const ctx = document.getElementById('bg').getContext('2d');
 Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin);
+Chart.register(offlineStatusPlugin);
 
 const sensorPoints = [];
 const manualPoints = [];
@@ -159,7 +193,8 @@ function initChart() {
                         }
                     }
                 },
-                centerText: {text: '???', color: COLORS.stale}
+                centerText: {text: '???', color: COLORS.stale},
+                offlineStatus: {enabled: false}
             }
         }
     });
@@ -215,15 +250,41 @@ function pushSensorPoint(ts, sg) {
     });
 }
 
+function markDisconnected() {
+    if (!isWebSocketConnected) return;
+    isWebSocketConnected = false;
+    chart.options.plugins.offlineStatus.enabled = true;
+    chart.update('none');
+}
+
+function markConnected() {
+    if (isWebSocketConnected) return;
+    isWebSocketConnected = true;
+    chart.options.plugins.offlineStatus.enabled = false;
+    chart.update('none');
+}
+
 function loadInitial() {
     const to = new Date().toISOString();
     const from = new Date(Date.now() - PERIOD_MS).toISOString();
-    const query = `query($uid:String!,$from:String!,$to:String!){
-    getDataPoints(userId:$uid,from:$from,to:$to){
-      timestamp
-      sensorGlucose{mgdl sensorId calibration{slope intercept}}
-      manualGlucose{mgdl}
-    }}`;
+    const query = `
+        query ($uid: String!, $from: String!, $to: String!) {
+          getDataPoints(userId: $uid, from: $from, to: $to) {
+            timestamp
+            sensorGlucose {
+              mgdl
+              sensorId
+              calibration {
+                slope
+                intercept
+              }
+            }
+            manualGlucose {
+              mgdl
+            }
+          }
+        }`;
+
     fetch('/graphql', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -257,14 +318,36 @@ function startSubscription() {
     const client = graphqlWs.createClient({
         url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/graphql`,
         retryAttempts: Infinity,
-        shouldRetry: () => true
+        shouldRetry: () => true,
+        on: {
+            connected: () => {
+                markConnected();
+            },
+            closed: () => {
+                markDisconnected();
+            }
+        }
     });
-    const subQ = `subscription{onDataPointAdded(userId:"${USER_ID}"){
-    timestamp
-    sensorGlucose{mgdl sensorId calibration{slope intercept}}
-    manualGlucose{mgdl}
-  }}`;
-    client.subscribe({query: subQ}, {
+
+    const subscriptionQuery = `
+    subscription {
+      onDataPointAdded(userId: "${USER_ID}") {
+        timestamp
+        sensorGlucose {
+          mgdl
+          sensorId
+          calibration {
+            slope
+            intercept
+          }
+        }
+        manualGlucose {
+          mgdl
+        }
+      }
+    }`;
+
+    client.subscribe({query: subscriptionQuery}, {
         next({data}) {
             const ts = data.onDataPointAdded.timestamp;
             const sg = data.onDataPointAdded.sensorGlucose;
