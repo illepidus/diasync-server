@@ -1,7 +1,7 @@
 const centerTextPlugin = {
     id: 'centerText',
     afterDatasetsDraw(chart) {
-        const { ctx, width, height } = chart;
+        const {ctx, width, height} = chart;
         const text = chart.options.plugins.centerText?.text;
         const color = chart.options.plugins.centerText?.color || '#fff';
         if (!text) return;
@@ -195,13 +195,14 @@ function loadInitial() {
                 const mg = pt.manualGlucose;
 
                 if (sg && sg.mgdl != null) {
+                    const calibrated = applyCalib(sg.mgdl, sg.calibration);
                     sensorPoints.push({
                         x: ts,
-                        y: sg.mgdl,
+                        y: calibrated,
                         mgdl: sg.mgdl,
                         sensorId: sg.sensorId,
                         calibration: sg.calibration,
-                        backgroundColor: getColor(sg.mgdl)
+                        backgroundColor: getColor(calibrated)
                     });
                 }
                 if (mg && mg.mgdl != null) {
@@ -235,13 +236,14 @@ function startSubscription() {
             const mg = data.onDataPointAdded.manualGlucose;
 
             if (sg && sg.mgdl != null) {
+                const calibrated = applyCalib(sg.mgdl, sg.calibration);
                 sensorPoints.push({
                     x: ts,
-                    y: sg.mgdl,
+                    y: calibrated,
                     mgdl: sg.mgdl,
                     sensorId: sg.sensorId,
                     calibration: sg.calibration,
-                    backgroundColor: getColor(sg.mgdl)
+                    backgroundColor: getColor(calibrated)
                 });
                 updateDisplay(sg.mgdl, sg.calibration);
             }
