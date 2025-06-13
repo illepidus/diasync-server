@@ -3,14 +3,14 @@ const centerTextPlugin = {
     afterDatasetsDraw(chart) {
         const {ctx, width, height} = chart;
         const text = chart.options.plugins.centerText?.text;
-        const color = chart.options.plugins.centerText?.color || '#fff';
+        const color = chart.options.plugins.centerText?.color || COLORS.stale;
         if (!text) return;
 
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
-        ctx.strokeStyle = '#000';
+        ctx.strokeStyle = COLORS.stroke;
 
         const fontFamily = 'Chakra Petch, sans-serif';
         let fontSize = height * 0.8;
@@ -48,6 +48,15 @@ const PERIOD_MS = (() => {
     return m ? +m[1] * (mult[m[2]] || 36e5) : 36e5;
 })();
 
+const COLORS = {
+    low: '#ff0030',
+    high: '#ffc000',
+    normal: '#ffffff',
+    stale: '#ff00ff',
+    manual: '#ff0030',
+    stroke: '#000000'
+};
+
 const ctx = document.getElementById('bg').getContext('2d');
 Chart.register(Chart.registry.getPlugin('annotation'), centerTextPlugin);
 
@@ -65,7 +74,7 @@ function toDisplay(mgdl, cal) {
 }
 
 function getColor(mgdl) {
-    return mgdl < LOW ? 'red' : mgdl > HIGH ? 'orange' : 'white';
+    return mgdl < LOW ? COLORS.low : mgdl > HIGH ? COLORS.high : COLORS.normal;
 }
 
 let chart;
@@ -90,8 +99,8 @@ function initChart() {
                     pointRadius: radius * 1.5,
                     pointHoverRadius: radius * 2,
                     pointStyle: 'rect',
-                    backgroundColor: 'red',
-                    borderColor: 'white',
+                    backgroundColor: COLORS.manual,
+                    borderColor: COLORS.normal,
                     borderWidth: radius / 2
                 }
             ]
@@ -128,12 +137,13 @@ function initChart() {
                     }
                 },
                 annotation: {
+                    drawTime: 'beforeDatasetsDraw',
                     annotations: {
-                        lowLine: {type: 'line', yMin: LOW, yMax: LOW, borderColor: 'red', borderWidth: 2},
-                        highLine: {type: 'line', yMin: HIGH, yMax: HIGH, borderColor: 'orange', borderWidth: 2}
+                        lowLine: {type: 'line', yMin: LOW, yMax: LOW, borderColor: COLORS.low, borderWidth: 2, z: -10},
+                        highLine: {type: 'line', yMin: HIGH, yMax: HIGH, borderColor: COLORS.high, borderWidth: 2, z: -10}
                     }
                 },
-                centerText: {text: '--', color: 'white'}
+                centerText: {text: '???', color: COLORS.stale}
             }
         }
     });
@@ -167,7 +177,7 @@ function updateChart() {
 
     if ((now - lastTimestamp) / 60000 > STALE_MIN) {
         chart.options.plugins.centerText.text = '???';
-        chart.options.plugins.centerText.color = 'purple';
+        chart.options.plugins.centerText.color = COLORS.stale;
     }
 
     chart.update('none');
@@ -255,5 +265,5 @@ function startSubscription() {
 
 initChart();
 loadInitial();
-setInterval(updateChart, 1000);
+setInterval(updateChart, 500);
 startSubscription();
