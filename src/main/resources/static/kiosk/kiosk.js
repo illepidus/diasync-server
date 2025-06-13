@@ -3,15 +3,14 @@ const centerTextPlugin = {
     afterDatasetsDraw(chart) {
         const {ctx, width, height} = chart;
         const text = chart.options.plugins.centerText?.text;
-        const color = chart.options.plugins.centerText?.color || getCSSVar('--color-normal');
-
+        const color = chart.options.plugins.centerText?.color || '#fff';
         if (!text) return;
 
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
-        ctx.strokeStyle = getCSSVar('--color-centerText-stroke');
+        ctx.strokeStyle = '#000';
 
         const fontFamily = 'Chakra Petch, sans-serif';
         let fontSize = height * 0.8;
@@ -65,16 +64,8 @@ function toDisplay(mgdl, cal) {
     return UNIT === 'mgdl' ? Math.round(v).toString() : (v / 18).toFixed(1);
 }
 
-function getCSSVar(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name)?.trim();
-}
-
 function getColor(mgdl) {
-    return mgdl < LOW
-        ? getCSSVar('--color-low')
-        : mgdl > HIGH
-            ? getCSSVar('--color-high')
-            : getCSSVar('--color-normal');
+    return mgdl < LOW ? 'red' : mgdl > HIGH ? 'orange' : 'white';
 }
 
 let chart;
@@ -99,8 +90,8 @@ function initChart() {
                     pointRadius: radius * 1.5,
                     pointHoverRadius: radius * 2,
                     pointStyle: 'rect',
-                    backgroundColor: getCSSVar('--color-manual'),
-                    borderColor: getCSSVar('--color-normal'),
+                    backgroundColor: 'red',
+                    borderColor: 'white',
                     borderWidth: radius / 2
                 }
             ]
@@ -176,7 +167,7 @@ function updateChart() {
 
     if ((now - lastTimestamp) / 60000 > STALE_MIN) {
         chart.options.plugins.centerText.text = '???';
-        chart.options.plugins.centerText.color = getCSSVar('--color-stale');
+        chart.options.plugins.centerText.color = 'purple';
     }
 
     chart.update('none');
