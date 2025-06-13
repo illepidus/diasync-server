@@ -1,3 +1,27 @@
+const params = new URLSearchParams(location.search);
+const DEFAULTS = {period: '1h', low: 70, high: 180, stale: 10, baseRadius: 6};
+const USER_ID = params.get('userId') || 'demo';
+const UNIT = params.get('unit') === 'mgdl' ? 'mgdl' : 'mmol';
+const USE_CALIB = params.get('calibrations') !== 'false';
+const LOW = parseFloat(params.get('low')) || DEFAULTS.low;
+const HIGH = parseFloat(params.get('high')) || DEFAULTS.high;
+const STALE_MIN = parseFloat(params.get('stale')) || DEFAULTS.stale;
+const PERIOD_MS = (() => {
+    const m = /^(\d+)([smhd])$/.exec(params.get('period') || DEFAULTS.period);
+    const mult = {s: 1e3, m: 6e4, h: 36e5, d: 864e5};
+    return m ? +m[1] * (mult[m[2]] || 36e5) : 36e5;
+})();
+
+const COLORS = {
+    stale: '#ff00ff',
+    offline: '#ff0030',
+    low: '#ff0030',
+    high: '#ffc000',
+    normal: '#ffffff',
+    manual: '#ff0030',
+    stroke: '#000000'
+};
+
 const centerTextPlugin = {
     id: 'centerText',
     afterDatasetsDraw(chart) {
@@ -42,6 +66,7 @@ const offlineStatusPlugin = {
         const {ctx, width, height} = chart;
         const text = 'OFFLINE';
         const color = COLORS.offline;
+        const strokeColor = COLORS.stroke;
         const fontFamily = 'Chakra Petch, sans-serif';
 
         let fontSize = height * 0.1;
@@ -56,38 +81,16 @@ const offlineStatusPlugin = {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillStyle = color;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = fontSize * 0.025;
 
         const centerX = width / 2;
         const offsetY = height * 0.025;
 
+        ctx.strokeText(text, centerX, offsetY);
         ctx.fillText(text, centerX, offsetY);
         ctx.restore();
     }
-};
-
-let isWebSocketConnected = false;
-const params = new URLSearchParams(location.search);
-const DEFAULTS = {period: '1h', low: 70, high: 180, stale: 10, baseRadius: 6};
-const USER_ID = params.get('userId') || 'demo';
-const UNIT = params.get('unit') === 'mgdl' ? 'mgdl' : 'mmol';
-const USE_CALIB = params.get('calibrations') !== 'false';
-const LOW = parseFloat(params.get('low')) || DEFAULTS.low;
-const HIGH = parseFloat(params.get('high')) || DEFAULTS.high;
-const STALE_MIN = parseFloat(params.get('stale')) || DEFAULTS.stale;
-const PERIOD_MS = (() => {
-    const m = /^(\d+)([smhd])$/.exec(params.get('period') || DEFAULTS.period);
-    const mult = {s: 1e3, m: 6e4, h: 36e5, d: 864e5};
-    return m ? +m[1] * (mult[m[2]] || 36e5) : 36e5;
-})();
-
-const COLORS = {
-    stale: '#ff00ff',
-    offline: '#ff0030',
-    low: '#ff0030',
-    high: '#ffc000',
-    normal: '#ffffff',
-    manual: '#ff0030',
-    stroke: '#000000'
 };
 
 const ctx = document.getElementById('bg').getContext('2d');
@@ -97,6 +100,7 @@ Chart.register(offlineStatusPlugin);
 const sensorPoints = [];
 const manualPoints = [];
 let lastTimestamp = Date.now();
+let isWebSocketConnected = false;
 
 function applyCalib(mgdl, cal) {
     return USE_CALIB && cal ? mgdl * cal.slope + cal.intercept : mgdl;
