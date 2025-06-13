@@ -139,8 +139,24 @@ function initChart() {
                 annotation: {
                     drawTime: 'beforeDatasetsDraw',
                     annotations: {
-                        lowLine: {type: 'line', yMin: LOW, yMax: LOW, borderColor: COLORS.low, borderWidth: 2, z: -10},
-                        highLine: {type: 'line', yMin: HIGH, yMax: HIGH, borderColor: COLORS.high, borderWidth: 2, z: -10}
+                        lowLine: {
+                            display: false,
+                            type: 'line',
+                            yMin: LOW,
+                            yMax: LOW,
+                            borderColor: COLORS.low,
+                            borderWidth: 2,
+                            z: -10
+                        },
+                        highLine: {
+                            display: false,
+                            type: 'line',
+                            yMin: HIGH,
+                            yMax: HIGH,
+                            borderColor: COLORS.high,
+                            borderWidth: 2,
+                            z: -10
+                        }
                     }
                 },
                 centerText: {text: '???', color: COLORS.stale}
@@ -179,6 +195,10 @@ function updateChart() {
         chart.options.plugins.centerText.text = '???';
         chart.options.plugins.centerText.color = COLORS.stale;
     }
+
+    const showLines = recentSensor.length > 0 || recentManual.length > 0;
+    chart.options.plugins.annotation.annotations.lowLine.display = showLines;
+    chart.options.plugins.annotation.annotations.highLine.display = showLines;
 
     chart.update('none');
 }
