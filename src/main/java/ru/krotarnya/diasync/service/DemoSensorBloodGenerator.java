@@ -3,6 +3,7 @@ package ru.krotarnya.diasync.service;
 import java.time.Duration;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
+import ru.krotarnya.diasync.model.Calibration;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.model.SensorGlucose;
 
@@ -24,6 +25,8 @@ public class DemoSensorBloodGenerator extends DemoDataGenerator {
     private static final Duration HARMONIC_3_PERIOD = HARMONIC_1_PERIOD.multipliedBy(7);
 
     private static final double NOISE_STD_DEV = 1.0;
+    private static final double CALIBRATION_SLOPE = 1.1;
+    private static final double CALIBRATION_INTERCEPT = -10;
 
     @Override
     public Duration basePeriod() {
@@ -40,12 +43,18 @@ public class DemoSensorBloodGenerator extends DemoDataGenerator {
         double signal = signal(timestamp);
         double noise = NOISE_STD_DEV * random().nextGaussian();
 
+
         return DataPoint.builder()
                 .userId(userId())
                 .timestamp(timestamp)
                 .sensorGlucose(SensorGlucose.builder()
                         .mgdl(signal + noise)
                         .sensorId(SENSOR_ID)
+                        .calibration(
+                                Calibration.builder()
+                                        .slope(CALIBRATION_SLOPE)
+                                        .intercept(CALIBRATION_INTERCEPT)
+                                        .build())
                         .build())
                 .build();
     }
