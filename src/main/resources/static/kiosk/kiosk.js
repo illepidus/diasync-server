@@ -140,8 +140,9 @@ function initChart() {
 }
 
 function updateDisplay(mgdl, cal) {
+    const calibrated = applyCalib(mgdl, cal);
     chart.options.plugins.centerText.text = toDisplay(mgdl, cal);
-    chart.options.plugins.centerText.color = getColor(mgdl);
+    chart.options.plugins.centerText.color = getColor(calibrated);
     lastTimestamp = Date.now();
 }
 
@@ -172,6 +173,18 @@ function updateChart() {
     chart.update('none');
 }
 
+function pushSensorPoint(ts, sg) {
+    const calibrated = applyCalib(sg.mgdl, sg.calibration);
+    sensorPoints.push({
+        x: ts,
+        y: calibrated,
+        mgdl: sg.mgdl,
+        sensorId: sg.sensorId,
+        calibration: sg.calibration,
+        backgroundColor: getColor(calibrated)
+    });
+}
+
 function loadInitial() {
     const to = new Date().toISOString();
     const from = new Date(Date.now() - PERIOD_MS).toISOString();
@@ -195,15 +208,7 @@ function loadInitial() {
                 const mg = pt.manualGlucose;
 
                 if (sg && sg.mgdl != null) {
-                    const calibrated = applyCalib(sg.mgdl, sg.calibration);
-                    sensorPoints.push({
-                        x: ts,
-                        y: calibrated,
-                        mgdl: sg.mgdl,
-                        sensorId: sg.sensorId,
-                        calibration: sg.calibration,
-                        backgroundColor: getColor(calibrated)
-                    });
+                    pushSensorPoint(ts, sg);
                 }
                 if (mg && mg.mgdl != null) {
                     manualPoints.push({x: ts, y: mg.mgdl});
@@ -236,15 +241,7 @@ function startSubscription() {
             const mg = data.onDataPointAdded.manualGlucose;
 
             if (sg && sg.mgdl != null) {
-                const calibrated = applyCalib(sg.mgdl, sg.calibration);
-                sensorPoints.push({
-                    x: ts,
-                    y: calibrated,
-                    mgdl: sg.mgdl,
-                    sensorId: sg.sensorId,
-                    calibration: sg.calibration,
-                    backgroundColor: getColor(calibrated)
-                });
+                pushSensorPoint(ts, sg);
                 updateDisplay(sg.mgdl, sg.calibration);
             }
             if (mg && mg.mgdl != null) {
