@@ -48,12 +48,25 @@ tasks.named('test') {
     useJUnitPlatform()
     jvmArgs "-javaagent:${classpath.find { it.name.contains('mockito-core') }}", "-Xshare:off"
 
+    def failedTests = []
+
+    afterTest { desc, result ->
+        if (result.resultType == TestResult.ResultType.FAILURE) {
+            failedTests << "${desc.className} > ${desc.name}"
+        }
+    }
+
     afterSuite { desc, result ->
         if (!desc.parent) {
             println "\nTest result summary:"
             println "  ✔ Passed:  ${result.successfulTestCount}"
             println "  ✘ Failed:  ${result.failedTestCount}"
             println "  ◌ Skipped: ${result.skippedTestCount}"
+
+            if (!failedTests.isEmpty()) {
+                println "\nFailed tests:"
+                failedTests.each { println "  ✘ $it" }
+            }
         }
     }
 
