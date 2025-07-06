@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import ru.krotarnya.diasync.model.DataPoint;
 
@@ -16,5 +18,13 @@ interface DataPointRepositoryJpa extends JpaRepository<DataPoint, Long> {
 
     Optional<DataPoint> findByUserIdAndTimestamp(String userId, Instant timestamp);
 
-    List<DataPoint> findByUserIdAndTimestampBetween(String userId, Instant from, Instant to);
+    @Query("""
+            SELECT dp FROM DataPoint dp
+            WHERE dp.userId = :userId AND (dp.timestamp BETWEEN :from AND :to OR dp.updateTimestamp BETWEEN :from AND :to)
+            """)
+    List<DataPoint> findByUserIdAndTimestampBetween(
+            @Param("userId") String userId,
+            @Param("from") Instant from,
+            @Param("to") Instant to
+    );
 }
