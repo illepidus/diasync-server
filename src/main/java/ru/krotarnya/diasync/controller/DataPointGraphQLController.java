@@ -22,6 +22,7 @@ public final class DataPointGraphQLController implements DataPointController {
         this.dataPointService = dataPointService;
     }
 
+    @Override
     @QueryMapping
     public List<DataPoint> getDataPoints(
             @Argument String userId,
@@ -30,11 +31,13 @@ public final class DataPointGraphQLController implements DataPointController {
         return dataPointService.getDataPoints(userId, from, to);
     }
 
+    @Override
     @MutationMapping
     public List<DataPoint> addDataPoints(@Argument List<DataPoint> dataPoints) {
         return dataPointService.addDataPoints(dataPoints);
     }
 
+    @Override
     @MutationMapping
     public int truncateDataPoints(@Argument String userId) {
         return dataPointService.truncateDataPoints(userId);

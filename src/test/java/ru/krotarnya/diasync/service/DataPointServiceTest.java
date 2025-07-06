@@ -5,8 +5,11 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.krotarnya.diasync.model.Carbs;
@@ -28,6 +31,37 @@ class DataPointServiceTest {
     @BeforeEach
     public void init() {
         service.truncateDataPoints(TEST_USER_ID);
+    }
+
+    @Test
+    public void shouldPreserveIdOnUpsert() {
+        DataPoint.DataPointBuilder builder = DataPoint.builder()
+                .userId(TEST_USER_ID)
+                .timestamp(TEST_TIMESTAMP);
+
+        DataPoint p1 = service.addDataPoint(builder.carbs(Carbs.builder().grams(20.).build()).build());
+        DataPoint p2 = service.addDataPoint(builder.manualGlucose(ManualGlucose.builder().mgdl(110.).build()).build());
+
+        Assertions.assertEquals(p1.getId(), p2.getId());
+    }
+
+    @Test
+    public void shouldGenerateMonotonicallyIncreasingIds() {
+        DataPoint.DataPointBuilder builder = DataPoint.builder()
+                .userId(TEST_USER_ID)
+                .carbs(Carbs.builder().grams(20.).build());
+
+        List<DataPoint> result = Stream.iterate(TEST_TIMESTAMP, ts -> ts.minus(Duration.ofSeconds(1)))
+                .limit(100)
+                .map(ts -> builder.timestamp(ts).build())
+                .map(service::addDataPoint)
+                .toList();
+
+        long prevId = -1;
+        for (DataPoint dataPoint : result) {
+            long id = dataPoint.getId();
+            Assertions.assertTrue(id > prevId);
+        }
     }
 
     @RepeatedTest(3)
