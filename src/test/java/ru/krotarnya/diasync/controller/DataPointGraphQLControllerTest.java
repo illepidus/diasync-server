@@ -4,8 +4,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Transactional
+@SuppressWarnings("DataFlowIssue")
+@Timeout(value = 5, unit = TimeUnit.SECONDS)
 class DataPointGraphQLControllerTest {
 
     @Autowired
@@ -57,13 +61,13 @@ class DataPointGraphQLControllerTest {
                 .then(() -> controller.addDataPoints(List.of(createDataPoint(timestamp))))
                 .expectNextMatches(dp ->
                         dp.getUserId().equals(userId) &&
-                        dp.getTimestamp().equals(timestamp) &&
-                        dp.getSensorGlucose() != null &&
-                        dp.getSensorGlucose().getSensorId().equals(sensorId) &&
-                        dp.getSensorGlucose().getMgdl() == mgdl &&
-                        dp.getSensorGlucose().getCalibration() == null &&
-                        dp.getManualGlucose() == null &&
-                        dp.getCarbs() == null
+                                dp.getTimestamp().equals(timestamp) &&
+                                dp.getSensorGlucose() != null &&
+                                dp.getSensorGlucose().getSensorId().equals(sensorId) &&
+                                dp.getSensorGlucose().getMgdl() == mgdl &&
+                                dp.getSensorGlucose().getCalibration() == null &&
+                                dp.getManualGlucose() == null &&
+                                dp.getCarbs() == null
                 )
                 .thenCancel()
                 .verify();

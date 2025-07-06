@@ -40,9 +40,12 @@ public final class DataPoint {
     private Long id;
 
     @Nullable
+    @Column(columnDefinition = "TIMESTAMP(9)")
     private Instant updateTimestamp;
 
     private String userId;
+
+    @Column(columnDefinition = "TIMESTAMP(9)")
     private Instant timestamp;
 
     @Embedded
