@@ -27,26 +27,19 @@ public class DataPointRepositoryImpl implements DataPointRepositoryCustom {
 
         return dataPoints.stream()
                 .map(this::upsertDataPoint)
-                .flatMap(Optional::stream)
                 .toList();
     }
 
     @Transactional
-    protected Optional<DataPoint> upsertDataPoint(DataPoint newPoint) {
+    protected DataPoint upsertDataPoint(DataPoint newPoint) {
         Optional<DataPoint> maybeExisting = jpa.findByUserIdAndTimestamp(newPoint.getUserId(), newPoint.getTimestamp());
 
-        if (maybeExisting.isEmpty()) {
-            return Optional.of(jpa.save(newPoint));
-        }
+        if (maybeExisting.isEmpty()) return jpa.save(newPoint);
 
         DataPoint existing = maybeExisting.get();
+        if (existing.withoutIdAndUpdateTimestamp().equals(newPoint.withoutIdAndUpdateTimestamp())) return existing;
 
-        if (existing.withoutId().equals(newPoint.withoutId())) {
-            return Optional.empty();
-        }
-
-        DataPoint updated = updateExisting(existing, newPoint);
-        return Optional.of(updated);
+        return updateExisting(existing, newPoint);
     }
 
     @Transactional

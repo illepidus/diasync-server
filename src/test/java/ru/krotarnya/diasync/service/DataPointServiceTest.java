@@ -34,7 +34,7 @@ class DataPointServiceTest {
     }
 
     @Test
-    public void shouldPreserveIdOnUpsert() {
+    public void shouldPreserveIdOnUpdate() {
         DataPoint.DataPointBuilder builder = DataPoint.builder()
                 .userId(TEST_USER_ID)
                 .timestamp(TEST_TIMESTAMP);
@@ -42,6 +42,33 @@ class DataPointServiceTest {
         DataPoint p1 = service.addDataPoint(builder.carbs(Carbs.builder().grams(20.).build()).build());
         DataPoint p2 = service.addDataPoint(builder.manualGlucose(ManualGlucose.builder().mgdl(110.).build()).build());
 
+        Assertions.assertEquals(p1.getId(), p2.getId());
+    }
+
+    @Test
+    public void shouldUpdateUpdateTimestampOnUpdate() {
+        DataPoint.DataPointBuilder builder = DataPoint.builder()
+                .userId(TEST_USER_ID)
+                .timestamp(TEST_TIMESTAMP);
+
+        DataPoint p1 = service.addDataPoint(builder.carbs(Carbs.builder().grams(20.).build()).build());
+        DataPoint p2 = service.addDataPoint(builder.manualGlucose(ManualGlucose.builder().mgdl(110.).build()).build());
+
+        Assertions.assertNotEquals(p1.getUpdateTimestamp(), p2.getUpdateTimestamp());
+        Assertions.assertTrue(p1.getUpdateTimestamp().isBefore(p2.getUpdateTimestamp()));
+    }
+
+    @Test
+    public void shouldPreserveUpdateTimestampAndIdOnDuplicateUpdate() {
+        DataPoint.DataPointBuilder builder = DataPoint.builder()
+                .userId(TEST_USER_ID)
+                .timestamp(TEST_TIMESTAMP)
+                .carbs(Carbs.builder().grams(20.).build());
+
+        DataPoint p1 = service.addDataPoint(builder.build());
+        DataPoint p2 = service.addDataPoint(builder.build());
+
+        Assertions.assertEquals(p1.getUpdateTimestamp(), p2.getUpdateTimestamp());
         Assertions.assertEquals(p1.getId(), p2.getId());
     }
 

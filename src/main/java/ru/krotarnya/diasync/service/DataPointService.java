@@ -43,7 +43,11 @@ public final class DataPointService {
     }
 
     public List<DataPoint> addDataPoints(List<DataPoint> dataPoints) {
+        Instant updateTimestamp = Instant.now();
+
         List<DataPoint> result = dataPoints.stream()
+                .map(DataPoint::withoutIdAndUpdateTimestamp)
+                .map(dataPoint -> dataPoint.withUpdateTimestamp(updateTimestamp))
                 .collect(Collectors.groupingBy(DataPoint::getUserId))
                 .entrySet()
                 .stream()
@@ -51,7 +55,10 @@ public final class DataPointService {
                 .flatMap(Collection::stream)
                 .toList();
 
-        result.forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
+        result.stream()
+                .filter(p -> updateTimestamp.equals(p.getUpdateTimestamp()))
+                .forEach(p -> subscribers.getOrDefault(p.getUserId(), List.of()).forEach(sink -> sink.next(p)));
+
         return result;
     }
 

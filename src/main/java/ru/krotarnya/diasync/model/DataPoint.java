@@ -39,6 +39,9 @@ public final class DataPoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Nullable
+    private Instant updateTimestamp;
+
     private String userId;
     private Instant timestamp;
 
@@ -59,7 +62,11 @@ public final class DataPoint {
     @Nullable
     private Carbs carbs;
 
-    public DataPoint withoutId() {
-        return toBuilder().id(null).build();
+    public DataPoint withUpdateTimestamp(Instant timestamp) {
+        return toBuilder().updateTimestamp(timestamp).build();
+    }
+
+    public DataPoint withoutIdAndUpdateTimestamp() {
+        return toBuilder().id(null).updateTimestamp(null).build();
     }
 }

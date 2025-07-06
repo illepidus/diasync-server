@@ -28,6 +28,7 @@ public class OpenApiIntegrationTest {
         Assertions.assertThat(response.getStatusCode().value())
                 .as("API Docs should return 200 OK")
                 .isEqualTo(200);
+
         Assertions.assertThat(response.getBody())
                 .as("API Docs response should contain OpenAPI JSON")
                 .isNotNull()
@@ -42,6 +43,7 @@ public class OpenApiIntegrationTest {
         Assertions.assertThat(response.getStatusCode().value())
                 .as("Swagger UI should return 200 OK")
                 .isEqualTo(200);
+
         Assertions.assertThat(response.getBody())
                 .as("Swagger UI response should contain HTML")
                 .isNotNull()
