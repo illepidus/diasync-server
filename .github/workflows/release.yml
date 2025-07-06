@@ -52,13 +52,10 @@ jobs:
       - name: Build Docker image
         run: docker build -t diasync-server:latest -f .github/docker/Dockerfile .
 
-      - name: Deploy to server
+      - name: Deploy and verify (with retries)
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-        run: bash .github/script/deploy_to_server.sh
-
-      - name: Verify deployment
-        run: bash .github/script/verify_deployment.sh
+        run: bash .github/script/deploy_and_verify.sh
 
       - name: Delete release branch on failure
         env:
