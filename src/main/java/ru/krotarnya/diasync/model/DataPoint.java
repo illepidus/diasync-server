@@ -39,14 +39,14 @@ public final class DataPoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Nullable
-    @Column(columnDefinition = "TIMESTAMP(9)")
-    private Instant updateTimestamp;
-
     private String userId;
 
     @Column(columnDefinition = "TIMESTAMP(9)")
     private Instant timestamp;
+
+    @Nullable
+    @Column(columnDefinition = "TIMESTAMP(9)")
+    private Instant updateTimestamp;
 
     @Embedded
     @Nullable
