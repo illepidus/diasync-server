@@ -27,4 +27,15 @@ interface DataPointRepositoryJpa extends JpaRepository<DataPoint, Long> {
             @Param("from") Instant from,
             @Param("to") Instant to
     );
+
+    @Query("""
+        SELECT dp FROM DataPoint dp
+        WHERE dp.userId = :userId
+          AND dp.updateTimestamp > :since
+        ORDER BY dp.updateTimestamp ASC, dp.id ASC
+        """)
+    List<DataPoint> findByUserIdAndUpdateTimestampAfter(
+            @Param("userId") String userId,
+            @Param("since") Instant since
+    );
 }
