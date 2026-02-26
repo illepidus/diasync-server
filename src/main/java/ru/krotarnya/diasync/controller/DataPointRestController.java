@@ -1,5 +1,6 @@
 package ru.krotarnya.diasync.controller;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -10,8 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
-import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
 import ru.krotarnya.diasync.model.DataPoint;
 import ru.krotarnya.diasync.service.DataPointService;
 
@@ -25,29 +25,27 @@ public final class DataPointRestController extends RestApiController implements 
     }
 
     @GetMapping("getDataPointsLongPoll")
-    public DeferredResult<List<DataPoint>> getDataPointsLongPoll(
+    public Mono<List<DataPoint>> getDataPointsLongPoll(
             @RequestParam("userId") String userId,
             @RequestParam("since") Instant since,
             @RequestParam(value = "timeoutMs", defaultValue = "75000") long timeoutMs
-    ) {
-        DeferredResult<List<DataPoint>> dr = new DeferredResult<>(timeoutMs);
+    )
+    {
+        Duration timeout = Duration.ofMillis(timeoutMs);
+        return Mono.fromSupplier(() -> dataPointService.getDataPointsUpdatedAfter(userId, since))
+                .flatMap(now -> {
+                    if (!now.isEmpty()) {
+                        return Mono.just(now);
+                    }
 
-        List<DataPoint> now = dataPointService.getDataPointsUpdatedAfter(userId, since);
-        if (!now.isEmpty()) {
-            dr.setResult(now);
-            return dr;
-        }
-
-        Disposable sub = dataPointService.onDataPointAdded(userId)
-                .filter(dp -> dp.getUpdateTimestamp() != null && dp.getUpdateTimestamp().isAfter(since))
-                .next()
-                .subscribe(
-                        dp -> dr.setResult(dataPointService.getDataPointsUpdatedAfter(userId, since)),
-                        dr::setErrorResult);
-
-        dr.onCompletion(sub::dispose);
-        dr.onTimeout(() -> dr.setResult(List.of()));
-        return dr;
+                    return dataPointService.onDataPointAdded(userId)
+                            .filter(dp -> dp.getUpdateTimestamp() != null && dp.getUpdateTimestamp().isAfter(since))
+                            .next()
+                            .timeout(timeout)
+                            .flatMap(dp -> Mono.fromSupplier(
+                                    () -> dataPointService.getDataPointsUpdatedAfter(userId, since)))
+                            .onErrorResume(throwable -> Mono.just(List.of()));
+                });
     }
 
     @Override
