@@ -12,7 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
 import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,15 +22,16 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-        name = "data_points",
+        name = "DATA_POINTS",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_data_points_user_time", columnNames = {
-                        "user_id",
-                        "timestamp"})
+                @UniqueConstraint(
+                        name = "UK_DATA_POINTS_USER_TIME",
+                        columnNames = {"USER_ID", "TIMESTAMP"})
         },
         indexes = {
-                @Index(name = "idx_userid_timestamp", columnList = "userId, timestamp"),
-                @Index(name = "idx_timestamp", columnList = "timestamp")
+                @Index(name = "IDX_USER_ID_TIMESTAMP", columnList = "USER_ID, TIMESTAMP"),
+                @Index(name = "IDX_TIMESTAMP", columnList = "TIMESTAMP"),
+                @Index(name = "IDX_USER_ID_UPDATE_TS_ID", columnList = "USER_ID, UPDATE_TIMESTAMP, ID")
         })
 @Data
 @Builder(toBuilder = true)
@@ -39,13 +42,14 @@ public final class DataPoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "USER_ID", nullable = false)
     private String userId;
 
-    @Column(columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TIMESTAMP", columnDefinition = "TIMESTAMP(9)")
     private Instant timestamp;
 
     @Nullable
-    @Column(columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "UPDATE_TIMESTAMP", columnDefinition = "TIMESTAMP(9)")
     private Instant updateTimestamp;
 
     @Embedded
