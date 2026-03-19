@@ -9,4 +9,11 @@ RUN mkdir -p /diasync/db
 
 EXPOSE 15080
 
-ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-jar", "/diasync/diasync.jar"]
+ENTRYPOINT ["java",
+  "-Xms192m",
+  "-Xmx384m",
+  "-XX:MaxMetaspaceSize=128m",
+  "-XX:MaxDirectMemorySize=128m",
+  "-Xlog:gc*,safepoint:stdout:time,uptime,level,tags",
+  "-jar",
+  "/diasync/diasync.jar"]
