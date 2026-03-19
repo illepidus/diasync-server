@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   app:
     image: diasync-server:latest
+    mem_limit: 600m
+    memswap_limit: 600m
     ports:
       - "15080:15080"
     volumes:
@@ -20,6 +20,8 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    mem_limit: 128m
+    memswap_limit: 128m
     ports:
       - "80:80"
       - "443:443"
@@ -36,6 +38,7 @@ services:
     restart: unless-stopped
 
   autoheal:
+    mem_limit: 64m
     image: willfarrell/autoheal:latest
     restart: unless-stopped
     environment:
