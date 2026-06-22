@@ -1,8 +1,8 @@
 services:
   app:
     image: diasync-server:latest
-    mem_limit: 600m
-    memswap_limit: 600m
+    mem_limit: 768m
+    memswap_limit: 768m
     ports:
       - "15080:15080"
     volumes:
