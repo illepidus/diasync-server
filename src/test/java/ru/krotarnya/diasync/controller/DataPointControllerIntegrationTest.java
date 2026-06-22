@@ -51,20 +51,20 @@ class DataPointControllerIntegrationTest {
     }
 
     @Test
-    void testAddDataPoints() {
+    void shouldAddDataPoints() {
         int id = executeAndGetIntegerResult(ADD_DATA_POINTS_QUERY, ADD_DATA_POINTS_PATH);
         assertTrue(id >= 0);
     }
 
     @Test
-    void testGetDataPoints() {
+    void shouldGetDataPoints() {
         executeGraphQl(ADD_DATA_POINTS_QUERY);
         int id = executeAndGetIntegerResult(GET_DATA_POINTS_QUERY, GET_DATA_POINTS_PATH);
         assertTrue(id >= 0);
     }
 
     @Test
-    void testTruncateDataPoints() {
+    void shouldTruncateDataPoints() {
         executeGraphQl(ADD_DATA_POINTS_QUERY);
 
         int firstTruncateResult = executeAndGetIntegerResult(TRUNCATE_QUERY, TRUNCATE_PATH);

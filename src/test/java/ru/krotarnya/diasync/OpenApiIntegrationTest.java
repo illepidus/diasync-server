@@ -22,7 +22,7 @@ public class OpenApiIntegrationTest {
 
 
     @Test
-    void testApiDocsEndpoint() {
+    void shouldProvideApiDocs() {
         ResponseEntity<String> response = query(apiDocsEndpoint);
 
         Assertions.assertThat(response.getStatusCode().value())
@@ -37,7 +37,7 @@ public class OpenApiIntegrationTest {
     }
 
     @Test
-    void testSwaggerUiEndpoint() {
+    void shouldProvideSwaggerUI() {
         ResponseEntity<String> response = query(swaggerUiEndpoint);
 
         Assertions.assertThat(response.getStatusCode().value())

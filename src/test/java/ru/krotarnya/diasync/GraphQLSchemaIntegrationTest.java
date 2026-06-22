@@ -21,7 +21,7 @@ public class GraphQLSchemaIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    void testGraphQLSchemaQuery() {
+    void shouldPrivideGraphQLSchema() {
         ResponseEntity<String> response = executeGraphQLRequest(SCHEMA_QUERY);
 
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
@@ -30,7 +30,7 @@ public class GraphQLSchemaIntegrationTest {
     }
 
     @Test
-    void testInvalidGraphQLQuery() {
+    void shouldReturnErrorOnInvalidGraphQLQuery() {
         ResponseEntity<String> response = executeGraphQLRequest(INVALID_QUERY);
 
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
