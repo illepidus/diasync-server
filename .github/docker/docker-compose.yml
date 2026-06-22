@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15080/api/v1/version" ]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
     labels:
@@ -44,7 +44,7 @@ services:
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
       - AUTOHEAL_INTERVAL=10
-      - AUTOHEAL_START_PERIOD=60
+      - AUTOHEAL_START_PERIOD=300
       - AUTOHEAL_DEFAULT_STOP_TIMEOUT=10
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
